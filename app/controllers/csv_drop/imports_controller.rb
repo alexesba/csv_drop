@@ -115,7 +115,6 @@ module CsvDrop
         @mapping = @import[:mapping]
         render :result
       else
-        @live_failures = live_failures_snapshot if live_failures_enabled?(@import)
         render :processing
       end
     end
@@ -223,25 +222,8 @@ module CsvDrop
       when "failed"
         render partial: "failed", locals: { import: @import }
       else
-        render partial: "progress", locals: progress_locals
+        render partial: "progress", locals: { import: @import }
       end
-    end
-
-    def progress_locals
-      locals = { import: @import }
-      if live_failures_enabled?(@import)
-        locals[:live_failures] = ImportResultPresenter.live_failures_snapshot(@import)
-      end
-      locals
-    end
-
-    def live_failures_enabled?(import)
-      CsvDrop.config.live_failures_during_import &&
-        import[:failed_rows].present?
-    end
-
-    def live_failures_snapshot
-      ImportResultPresenter.live_failures_snapshot(@import)
     end
 
     def upload_io(upload)

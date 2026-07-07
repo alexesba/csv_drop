@@ -43,7 +43,6 @@ module CsvDrop
         row_number = index + 2 # header is row 1
         display_values = @mapper.row_values(row)
         attributes = @mapper.map_row(row)
-        failure_added = false
 
         record = @model_class.new(attributes)
         success = persist ? record.save : record.valid?
@@ -61,17 +60,9 @@ module CsvDrop
             values: display_values,
             messages: record.errors.full_messages
           )
-          failure_added = true
         end
 
-        emit_progress(
-          progress,
-          result,
-          index + 1,
-          rows.size,
-          persist: persist,
-          failure_added: failure_added
-        )
+        emit_progress(progress, result, index + 1, rows.size)
       end
 
       result
@@ -84,22 +75,15 @@ module CsvDrop
       raise Error, "Required columns not mapped: #{unmapped.join(', ')}"
     end
 
-    def emit_progress(callback, result, processed_rows, total_rows, persist:, failure_added: false)
+    def emit_progress(callback, result, processed_rows, total_rows)
       return unless callback
 
-      payload = {
+      callback.call(
         processed_rows: processed_rows,
         total_rows: total_rows,
         success_count: result.success_count,
-        failure_count: result.failure_count,
-        failure_added: failure_added
-      }
-
-      if persist && CsvDrop.config.live_failures_during_import
-        payload[:failed_rows] = ImportResultPresenter.serialize_failed_rows(result)
-      end
-
-      callback.call(payload)
+        failure_count: result.failure_count
+      )
     end
   end
 end

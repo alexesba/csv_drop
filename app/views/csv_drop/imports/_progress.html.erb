@@ -30,12 +30,4 @@
       Status: <strong><%= import[:status].humanize %></strong>
     </p>
   </div>
-
-  <% if local_assigns[:live_failures] && live_failures.rows.any? %>
-    <%= render "csv_drop/imports/live_failures_table",
-      column_headers: live_failures.column_headers,
-      rows: live_failures.rows,
-      title: "Failures so far",
-      hint: "Failed rows appear here as they are detected. Successful rows are counted above." %>
-  <% end %>
 <% end %>

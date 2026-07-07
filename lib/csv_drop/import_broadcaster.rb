@@ -10,15 +10,10 @@ module CsvDrop
       end
 
       def broadcast_progress(import_id, import:)
-        locals = { import: import }
-        if live_failures_enabled?(import)
-          locals[:live_failures] = ImportResultPresenter.live_failures_snapshot(import)
-        end
-
         broadcast_replace(
           import_id,
           partial: "csv_drop/imports/progress",
-          locals: locals
+          locals: { import: import }
         )
       end
 
@@ -68,11 +63,6 @@ module CsvDrop
 
       def turbo_available?
         defined?(Turbo::StreamsChannel)
-      end
-
-      def live_failures_enabled?(import)
-        CsvDrop.config.live_failures_during_import &&
-          import[:failed_rows].present?
       end
     end
   end
