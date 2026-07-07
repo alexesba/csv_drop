@@ -7,7 +7,7 @@ module CsvMapper
       @mapper = Mapper.new(@model_class, mapping)
     end
 
-    def import(rows)
+    def import(rows, &progress)
       validate_mapping!
 
       result = Result.new(total_rows: rows.size)
@@ -29,6 +29,8 @@ module CsvMapper
             messages: record.errors.full_messages
           )
         end
+
+        emit_progress(progress, result, index + 1, rows.size)
       end
 
       result
@@ -46,6 +48,17 @@ module CsvMapper
       return if unmapped.empty?
 
       raise Error, "Required columns not mapped: #{unmapped.join(', ')}"
+    end
+
+    def emit_progress(callback, result, processed_rows, total_rows)
+      return unless callback
+
+      callback.call(
+        processed_rows: processed_rows,
+        total_rows: total_rows,
+        success_count: result.success_count,
+        failure_count: result.failure_count
+      )
     end
   end
 end
