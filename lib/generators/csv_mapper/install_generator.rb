@@ -16,6 +16,15 @@ module CsvMapper
       def mount_engine
         route 'mount CsvMapper::Engine, at: "/csv_import"'
       end
+
+      def show_turbo_setup
+        return if File.exist?("config/importmap.rb")
+
+        say "\nFor async import UI, also run:", :yellow
+        say "  bundle add turbo-rails importmap-rails propshaft"
+        say "  rails importmap:install"
+        say "  rails turbo:install\n"
+      end
     end
   end
 end

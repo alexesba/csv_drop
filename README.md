@@ -84,7 +84,13 @@ Imports at or above `async_row_threshold` rows are enqueued via `CsvMapper::Impo
 
 Small imports (below the threshold) still run synchronously in the request.
 
-Requires `turbo-rails` and Action Cable (standard in Rails 7+ host apps).
+Requires `turbo-rails`, Action Cable, and **importmap** (or an asset pipeline) in the host app:
+
+```bash
+bundle add turbo-rails importmap-rails propshaft
+rails importmap:install
+rails turbo:install
+```
 
 ## Programmatic API
 
