@@ -26,6 +26,11 @@ module CsvDrop
         adapter.destroy(id)
       end
 
+      def list(limit: nil)
+        limit ||= CsvDrop.config.history_limit
+        adapter.list(limit: limit)
+      end
+
       private
 
       def adapter

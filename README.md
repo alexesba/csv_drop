@@ -169,6 +169,9 @@ result.errors         # => per-row validation failures
 - [ ] **`insert_all` fast path (deferred)** — optional bulk insert after row-by-row validation; async jobs already cover typical large imports — only worth it for very high volume where job runtime becomes a bottleneck (skips callbacks; not a replacement for per-row validation UX)
 - [x] Duplicate detection / upsert — match on a unique column; skip, update, or fail duplicates
 - [ ] **Customizable UI** — extract inline CSS/JS into gem assets (vanilla ES modules + `data-*` hooks) so host apps can override views/styles without forking behavior
+- [x] **Import history** — list past import runs with model, status, counts, and links back to results
+- [ ] **Repeat mapping** — start a new import reusing model, column mapping, and duplicate settings from a past run
+- [ ] **Record links** — capture created/updated record IDs on success and link out to the host app (configurable path helper)
 
 ### Import results table
 
@@ -181,6 +184,10 @@ Inspired by [data_porter](https://github.com/SerylLns/data_porter): show a **pag
 | **3 — Export rejects** | Download failed rows as CSV | Done |
 
 Row results are stored in `ImportProgressStore` (`rows` key) so results work across dynos when Redis is configured. Configure page size with `config.results_per_page` (default: 50).
+
+### Import history
+
+Visit **Past Imports** (`/csv_drop/imports`) to see recent runs — model, status, row counts, and a link back to the full results page. History reads from the same progress store as live imports; configure how many entries appear with `config.history_limit` (default: 50). Entries expire when the progress store TTL elapses (`config.progress_ttl`, default: 24 hours).
 
 ## Testing
 

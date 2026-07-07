@@ -5,6 +5,8 @@ require "fileutils"
 require "json"
 require "pathname"
 
+require_relative "progress_summary"
+
 module CsvDrop
   module Stores
     class FileProgressStore
@@ -57,7 +59,28 @@ module CsvDrop
         FileUtils.rm_f(progress_path(id))
       end
 
+      def list(limit: 50)
+        return [] unless progress_dir.exist?
+
+        entries = progress_dir.glob("*.json").filter_map do |path|
+          summarize_file(path)
+        end
+
+        sort_and_limit(entries, limit)
+      end
+
       private
+
+      def summarize_file(path)
+        progress = JSON.parse(File.read(path), symbolize_names: true)
+        ProgressSummary.summarize(progress)
+      rescue JSON::ParserError
+        nil
+      end
+
+      def sort_and_limit(entries, limit)
+        entries.sort_by { |entry| -entry[:created_at].to_i }.first(limit)
+      end
 
       def progress_dir
         Pathname.new(Dir.tmpdir).join("csv_drop", "imports")

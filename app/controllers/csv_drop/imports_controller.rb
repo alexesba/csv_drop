@@ -7,6 +7,10 @@ module CsvDrop
       @importable_models = importable_model_options
     end
 
+    def index
+      @imports = ImportHistory.entries
+    end
+
     def preview
       unless params[:csv_file].present? && params[:model_name].present?
         redirect_to new_import_path, alert: "Please select a CSV file and a model."

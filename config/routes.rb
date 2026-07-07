@@ -3,7 +3,7 @@
 CsvDrop::Engine.routes.draw do
   root to: "imports#new"
 
-  resources :imports, only: %i[new create show] do
+  resources :imports, only: %i[index new create show] do
     member do
       get :rejects
     end

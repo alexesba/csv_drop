@@ -23,6 +23,14 @@ class FakeRedis
     1
   end
 
+  def scan_each(match: "*")
+    pattern = Regexp.new("\\A#{Regexp.escape(match).gsub('\*', '.*')}\\z")
+    @data.each_key do |key|
+      expire!(key)
+      yield key if key.match?(pattern)
+    end
+  end
+
   private
 
   def expire!(key)

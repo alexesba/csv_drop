@@ -1,0 +1,77 @@
+<% content_for :title, "Import History" %>
+
+<%= render "nav", current: :history %>
+
+<div class="card">
+  <h1>Past Imports</h1>
+  <p>Review previous import runs and open their results.</p>
+
+  <% if @imports.any? %>
+    <div class="table-scroll">
+      <table class="results-table history-table">
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Model</th>
+            <th>Status</th>
+            <th>Rows</th>
+            <th>Outcome</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @imports.each do |entry| %>
+            <tr>
+              <td>
+                <% if entry.created_at %>
+                  <time datetime="<%= Time.at(entry.created_at).iso8601 %>">
+                    <%= l Time.at(entry.created_at), format: :short %>
+                  </time>
+                <% else %>
+                  —
+                <% end %>
+              </td>
+              <td><%= entry.model_name %></td>
+              <td>
+                <span class="status-badge <%= CsvDrop::ImportHistory.status_class_for(entry) %>">
+                  <%= CsvDrop::ImportHistory.label_for(entry) %>
+                </span>
+              </td>
+              <td><%= entry.total_rows %></td>
+              <td class="history-outcome">
+                <% if entry.status == "failed" && entry.error_message.present? %>
+                  <span class="error-cell"><%= entry.error_message %></span>
+                <% else %>
+                  <span class="history-counts">
+                    <% unless entry.dry_run %>
+                      <span><%= entry.success_count %> ok</span>
+                    <% else %>
+                      <span><%= entry.success_count %> valid</span>
+                    <% end %>
+                    <% if entry.failure_count.positive? %>
+                      <span><%= entry.failure_count %> failed</span>
+                    <% end %>
+                    <% if entry.skipped_count.positive? %>
+                      <span><%= entry.skipped_count %> skipped</span>
+                    <% end %>
+                    <% if entry.updated_count.positive? %>
+                      <span><%= entry.updated_count %> updated</span>
+                    <% end %>
+                  </span>
+                <% end %>
+              </td>
+              <td>
+                <%= link_to "View results", import_path(entry.id), class: "btn btn-secondary btn-sm" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="empty-state">No imports yet. Upload a CSV to get started.</p>
+    <div class="actions">
+      <%= link_to "New Import", new_import_path, class: "btn" %>
+    </div>
+  <% end %>
+</div>

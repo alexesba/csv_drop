@@ -36,6 +36,22 @@ class RedisProgressStoreTest < ActiveSupport::TestCase
   ensure
     @store.destroy(import_id) if import_id
   end
+
+  test "lists import summaries newest first" do
+    older_id = @store.create(model_name: "Contact", total_rows: 1, mapping: {})
+    @store.update(older_id, status: "completed", created_at: 1.hour.ago.to_i)
+
+    newer_id = @store.create(model_name: "Contact", total_rows: 2, mapping: {})
+    @store.update(newer_id, status: "completed", created_at: Time.now.to_i, success_count: 2)
+
+    summaries = @store.list
+    assert_equal newer_id, summaries.first[:id]
+    assert_equal 2, summaries.first[:success_count]
+    assert_nil summaries.first[:rows]
+  ensure
+    @store.destroy(older_id) if older_id
+    @store.destroy(newer_id) if newer_id
+  end
 end
 
 class RedisSessionStoreTest < ActiveSupport::TestCase

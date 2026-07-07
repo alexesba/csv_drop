@@ -206,4 +206,35 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
     assert_equal "admin", Contact.find_by!(email: "alice@example.com").role
     assert_equal "user", Contact.find_by!(email: "bob@example.com").role
   end
+
+  test "import history lists completed imports" do
+    file = fixture_file_upload("contacts.csv", "text/csv")
+
+    post "/csv_drop/imports/preview",
+      params: { csv_file: file, model_name: "Contact" },
+      as: :multipart
+
+    follow_redirect!
+
+    token = response.body[/name="token"[^>]*value="([^"]+)"/, 1] ||
+            response.body[/value="([^"]+)"[^>]*name="token"/, 1]
+
+    post "/csv_drop/imports", params: {
+      token: token,
+      mapping: {
+        "name" => "name",
+        "email" => "email",
+        "role" => "role"
+      }
+    }
+
+    import_path = response.redirect_url
+
+    get "/csv_drop/imports"
+    assert_response :success
+    assert_match "Past Imports", response.body
+    assert_match "Contact", response.body
+    assert_match "Completed", response.body
+    assert_match import_path.split("/").last, response.body
+  end
 end

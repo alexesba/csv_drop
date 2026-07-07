@@ -1,5 +1,7 @@
 <% content_for :title, "Importing" %>
 
+<%= render "nav", current: :history %>
+
 <% if @import[:status].in?(%w[queued running]) %>
   <% content_for :head do %>
     <meta http-equiv="refresh" content="2">

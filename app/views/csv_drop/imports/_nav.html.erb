@@ -1,0 +1,4 @@
+<nav class="site-nav" aria-label="CsvDrop">
+  <%= link_to "New Import", new_import_path, class: "site-nav-link#{' is-active' if current == :new}" %>
+  <%= link_to "Past Imports", imports_path, class: "site-nav-link#{' is-active' if current == :history}" %>
+</nav>

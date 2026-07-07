@@ -3,6 +3,8 @@
 require "securerandom"
 require "json"
 
+require_relative "progress_summary"
+
 module CsvDrop
   module Stores
     class RedisProgressStore
@@ -59,7 +61,27 @@ module CsvDrop
         @redis.del(key(id))
       end
 
+      def list(limit: 50)
+        entries = redis_keys.filter_map do |redis_key|
+          id = redis_key.delete_prefix(KEY_PREFIX)
+          progress = fetch(id)
+          ProgressSummary.summarize(progress) if progress
+        end
+
+        entries.sort_by { |entry| -entry[:created_at].to_i }.first(limit)
+      end
+
       private
+
+      def redis_keys
+        if @redis.respond_to?(:scan_each)
+          keys = []
+          @redis.scan_each(match: "#{KEY_PREFIX}*") { |redis_key| keys << redis_key }
+          keys
+        else
+          @redis.keys("#{KEY_PREFIX}*")
+        end
+      end
 
       def write(id, data)
         @redis.setex(key(id), progress_ttl.to_i, data.to_json)
