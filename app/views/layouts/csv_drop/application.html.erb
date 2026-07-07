@@ -248,6 +248,99 @@
         color: var(--text);
         word-break: break-all;
       }
+
+      .table-scroll {
+        overflow-x: auto;
+        margin-bottom: 1rem;
+      }
+
+      .results-table td.error-cell {
+        color: var(--error);
+        max-width: 16rem;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 0.125rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .status-imported {
+        background: #f0fdf4;
+        color: var(--success);
+      }
+
+      .status-failed {
+        background: #fef2f2;
+        color: var(--error);
+      }
+
+      .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+      }
+
+      .pagination-pages {
+        display: inline-flex;
+        align-items: stretch;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--surface);
+      }
+
+      .pagination-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.25rem;
+        padding: 0.5rem 0.75rem;
+        border: none;
+        border-right: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--primary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        line-height: 1;
+      }
+
+      .pagination-link:last-child {
+        border-right: none;
+      }
+
+      .pagination-link:hover {
+        background: #eff6ff;
+      }
+
+      .pagination-link.is-active {
+        background: var(--primary);
+        color: white;
+        cursor: default;
+      }
+
+      .pagination-gap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.25rem;
+        padding: 0.5rem 0.5rem;
+        border-right: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.875rem;
+        user-select: none;
+      }
+
+      .pagination-info {
+        font-size: 0.875rem;
+        color: var(--muted);
+      }
     </style>
   </head>
   <body>

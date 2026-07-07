@@ -17,15 +17,21 @@ module CsvDrop
         break if max_rows && index >= max_rows
 
         row_number = index + 2 # header is row 1
+        display_values = @mapper.row_values(row)
         attributes = @mapper.map_row(row)
 
         record = @model_class.new(attributes)
         if record.save
-          result.add_success(record)
-        else
-          result.add_error(
+          result.add_row(
             row_number: row_number,
-            attributes: attributes,
+            status: :imported,
+            values: display_values
+          )
+        else
+          result.add_row(
+            row_number: row_number,
+            status: :failed,
+            values: display_values,
             messages: record.errors.full_messages
           )
         end

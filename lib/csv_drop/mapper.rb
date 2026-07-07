@@ -51,6 +51,20 @@ module CsvDrop
       required - mapped
     end
 
+    def mapped_csv_headers
+      @mapping.each_with_object([]) do |(csv_column, attribute), headers|
+        next if attribute.nil? || attribute == SKIP || attribute.to_s.empty?
+
+        headers << csv_column.to_s
+      end
+    end
+
+    def row_values(csv_row)
+      mapped_csv_headers.each_with_object({}) do |header, values|
+        values[header] = csv_row[header.to_sym] || csv_row[header.to_s]
+      end
+    end
+
     private
 
     def normalize_mapping(mapping)

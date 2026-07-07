@@ -24,6 +24,7 @@ module CsvDrop
           failure_count: attrs.fetch(:failure_count, 0),
           mapping: mapping,
           errors: attrs.fetch(:errors, []),
+          rows: attrs.fetch(:rows, []),
           error_message: attrs.fetch(:error_message, nil),
           created_at: Time.now.to_i,
           updated_at: Time.now.to_i

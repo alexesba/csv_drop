@@ -26,13 +26,7 @@ module CsvDrop
 
       SessionStore.destroy(session_token)
 
-      serialized_errors = result.errors.map do |error|
-        {
-          row_number: error.row_number,
-          attributes: error.attributes,
-          messages: error.messages
-        }
-      end
+      snapshot = ImportResultPresenter.snapshot_from_result(result, mapping: mapping)
 
       ImportProgressStore.update(
         import_id,
@@ -40,10 +34,14 @@ module CsvDrop
         processed_rows: result.total_rows,
         success_count: result.success_count,
         failure_count: result.failure_count,
-        errors: serialized_errors
+        rows: ImportResultPresenter.serialize_rows(result)
       )
 
-      ImportBroadcaster.broadcast_result(import_id, result: result, model_name: model_name)
+      ImportBroadcaster.broadcast_result(
+        import_id,
+        result: snapshot,
+        model_name: model_name
+      )
     rescue Error => e
       progress = ImportProgressStore.update(import_id, status: "failed", error_message: e.message)
       ImportBroadcaster.broadcast_failure(import_id, import: progress)

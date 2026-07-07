@@ -88,8 +88,9 @@ module CsvDrop
 
       case @import[:status]
       when "completed"
-        @result = result_from_progress(@import)
+        @result = ImportResultPresenter.snapshot_from_progress(@import)
         @model_name = @import[:model_name]
+        @import_results = build_import_results(@result.rows)
         render :result
       else
         render :processing
@@ -130,51 +131,35 @@ module CsvDrop
         processed_rows: result.total_rows,
         success_count: result.success_count,
         failure_count: result.failure_count,
-        errors: serialize_errors(result)
+        rows: ImportResultPresenter.serialize_rows(result)
       )
 
       redirect_to import_path(import_id)
     end
 
-    def serialize_errors(result)
-      result.errors.map do |error|
-        {
-          row_number: error.row_number,
-          attributes: error.attributes,
-          messages: error.messages
-        }
-      end
+    def result_content_locals(result)
+      {
+        result: result,
+        model_name: @import[:model_name],
+        import_id: @import_id,
+        import_results: build_import_results(result.rows)
+      }
+    end
+
+    def build_import_results(rows)
+      ImportResults.new(rows: rows, page: params[:page])
     end
 
     def render_status_frame
       case @import[:status]
       when "completed"
-        render partial: "result_content", locals: {
-          result: result_from_progress(@import),
-          model_name: @import[:model_name]
-        }
+        result = ImportResultPresenter.snapshot_from_progress(@import)
+        render partial: "result_content", locals: result_content_locals(result)
       when "failed"
         render partial: "failed", locals: { import: @import }
       else
         render partial: "progress", locals: { import: @import }
       end
-    end
-
-    def result_from_progress(import)
-      errors = import.fetch(:errors, []).map do |error|
-        Result::RowError.new(
-          row_number: error[:row_number] || error["row_number"],
-          attributes: error[:attributes] || error["attributes"],
-          messages: error[:messages] || error["messages"]
-        )
-      end
-
-      ResultSnapshot.new(
-        total_rows: import[:total_rows],
-        success_count: import[:success_count],
-        failure_count: import[:failure_count],
-        errors: errors
-      )
     end
 
     def upload_io(upload)

@@ -23,27 +23,8 @@
     </div>
   </div>
 
-  <% if result.errors.any? %>
-    <div class="card">
-      <h2>Errors</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Row</th>
-            <th>Data</th>
-            <th>Errors</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% result.errors.each do |error| %>
-            <tr>
-              <td><%= error.row_number %></td>
-              <td><code style="font-size:0.75rem;"><%= error.attributes.to_json %></code></td>
-              <td style="color: var(--error);"><%= error.messages.join(", ") %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-  <% end %>
+  <%= render "csv_drop/imports/import_rows_table",
+    result: result,
+    import_results: import_results,
+    import_id: import_id %>
 <% end %>

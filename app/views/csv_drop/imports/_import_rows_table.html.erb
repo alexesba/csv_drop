@@ -1,0 +1,80 @@
+<% if result.rows.any? %>
+  <div class="card">
+    <h2>Import Results</h2>
+
+    <div class="table-scroll">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Row</th>
+            <th>Status</th>
+            <% result.column_headers.each do |header| %>
+              <th><%= header %></th>
+            <% end %>
+            <th>Errors</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% import_results.items.each do |row| %>
+            <tr class="row-<%= row.status %>">
+              <td><%= row.row_number %></td>
+              <td>
+                <span class="status-badge status-<%= row.status %>">
+                  <%= row.status == :imported ? "Imported" : "Failed" %>
+                </span>
+              </td>
+              <% result.column_headers.each do |header| %>
+                <td><%= row.values[header] %></td>
+              <% end %>
+              <td class="error-cell">
+                <% if row.messages.any? %>
+                  <%= row.messages.join(", ") %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if import_results.total_pages > 1 %>
+      <nav class="pagination" aria-label="Import results pages">
+        <div class="pagination-pages" role="group" aria-label="Page numbers">
+          <% unless import_results.first_page? %>
+            <%= link_to "Previous",
+              import_path(import_id, page: import_results.current_page - 1),
+              class: "pagination-link",
+              data: { turbo_frame: "_top" },
+              aria: { label: "Previous page" } %>
+          <% end %>
+
+          <% import_results.page_sequence.each do |entry| %>
+            <% if entry == :gap %>
+              <span class="pagination-gap" aria-hidden="true">…</span>
+            <% elsif entry == import_results.current_page %>
+              <span class="pagination-link is-active" aria-current="page"><%= entry %></span>
+            <% else %>
+              <%= link_to entry,
+                import_path(import_id, page: entry),
+                class: "pagination-link",
+                data: { turbo_frame: "_top" },
+                aria: { label: "Page #{entry}" } %>
+            <% end %>
+          <% end %>
+
+          <% unless import_results.last_page? %>
+            <%= link_to "Next",
+              import_path(import_id, page: import_results.current_page + 1),
+              class: "pagination-link",
+              data: { turbo_frame: "_top" },
+              aria: { label: "Next page" } %>
+          <% end %>
+        </div>
+
+        <span class="pagination-info">
+          <%= import_results.total_count %> rows
+        </span>
+      </nav>
+    <% end %>
+  </div>
+<% end %>

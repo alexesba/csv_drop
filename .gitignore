@@ -8,3 +8,4 @@
 /test/dummy/db/*.sqlite3
 /test/dummy/vendor/bundle
 /test/fixtures/files/contacts_1000.csv
+/test/fixtures/files/contacts_1000_mixed.csv

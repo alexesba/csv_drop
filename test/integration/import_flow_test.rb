@@ -40,8 +40,41 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_response :success
     assert_match "Import Complete", response.body
+    assert_match "Import Results", response.body
+    assert_match "Alice", response.body
+    assert_match "bob@example.com", response.body
     assert_equal "Alice", Contact.find_by!(email: "alice@example.com").name
     assert_equal "user", Contact.find_by!(email: "bob@example.com").role
+  end
+
+  test "import results table shows validation failures with mapped columns" do
+    file = fixture_file_upload("contacts_invalid.csv", "text/csv")
+
+    post "/csv_drop/imports/preview",
+      params: { csv_file: file, model_name: "Contact" },
+      as: :multipart
+
+    follow_redirect!
+
+    token = response.body[/name="token"[^>]*value="([^"]+)"/, 1] ||
+            response.body[/value="([^"]+)"[^>]*name="token"/, 1]
+
+    assert_difference "Contact.count", 1 do
+      post "/csv_drop/imports", params: {
+        token: token,
+        mapping: {
+          "name" => "name",
+          "email" => "email",
+          "role" => "role"
+        }
+      }
+    end
+
+    follow_redirect!
+    assert_match "Failed", response.body
+    assert_match "be blank", response.body
+    assert_match "alice@example.com", response.body
+    assert_match "Bob", response.body
   end
 
   test "importer reports validation errors for invalid rows" do
@@ -55,6 +88,9 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
 
     assert_equal 1, result.success_count
     assert_equal 1, result.failure_count
+    assert_equal 2, result.rows.size
+    assert_equal :failed, result.rows.first.status
+    assert_equal "alice@example.com", result.rows.first.values["email"]
     assert_includes result.errors.first.messages.join, "can't be blank"
   end
 end

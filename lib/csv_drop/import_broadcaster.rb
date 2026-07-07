@@ -18,10 +18,17 @@ module CsvDrop
       end
 
       def broadcast_result(import_id, result:, model_name:)
+        import_results = ImportResults.new(rows: result.rows, page: 1)
+
         broadcast_replace(
           import_id,
           partial: "csv_drop/imports/result_content",
-          locals: { result: result, model_name: model_name }
+          locals: {
+            result: result,
+            model_name: model_name,
+            import_id: import_id,
+            import_results: import_results
+          }
         )
       end
 

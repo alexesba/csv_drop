@@ -42,4 +42,11 @@ class MapperTest < ActiveSupport::TestCase
     assert_equal CsvDrop::Mapper::SKIP, mapping["email"]
     assert_equal "role", mapping["notes"]
   end
+
+  test "mapped_csv_headers and row_values exclude skipped columns" do
+    mapper = CsvDrop::Mapper.new(Contact, { "name" => "name", "email" => CsvDrop::Mapper::SKIP, "role" => "role" })
+
+    assert_equal %w[name role], mapper.mapped_csv_headers
+    assert_equal({ "name" => "Alice", "role" => "admin" }, mapper.row_values(name: "Alice", email: "skip@example.com", role: "admin"))
+  end
 end

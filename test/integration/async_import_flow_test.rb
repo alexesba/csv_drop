@@ -45,5 +45,6 @@ class AsyncImportFlowTest < ActionDispatch::IntegrationTest
     progress = CsvDrop::ImportProgressStore.fetch(import_id)
     assert_equal "completed", progress[:status]
     assert_equal 2, progress[:success_count]
+    assert_equal 2, progress[:rows].size
   end
 end
