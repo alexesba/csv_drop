@@ -3,7 +3,7 @@
 require "test_helper"
 require "csv_mapper/parser"
 
-class ParserTest < Minitest::Test
+class ParserTest < ActiveSupport::TestCase
   def test_parses_headers_and_rows
     csv = <<~CSV
       name,email,age
