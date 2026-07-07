@@ -161,7 +161,7 @@ result.errors         # => per-row validation failures
 
 ## Roadmap
 
-- [x] **Import results table** — paginated row-level results with mapped columns and inline errors (Phase 1 complete; see below)
+- [x] **Import results table** — paginated row-level results with mapped columns, inline errors, dry run, and rejects export (see below)
 - [x] **Dry run** — preview import results without saving
 - [x] **Turbo Frames + background jobs** — enqueue large imports, show progress, update UI on completion
 - [x] **Pluggable storage backends** — Redis + Active Storage for Heroku/multi-dyno deploys
@@ -179,7 +179,6 @@ Inspired by [data_porter](https://github.com/SerylLns/data_porter): show a **pag
 | **1 — Results table** | On import complete: table with row #, mapped columns, status, and errors column; server-side pagination (50 rows/page via `?page=N`) | Done |
 | **2 — Dry run / preview** | Same table UI before import — validate rows without saving (pairs with dry run roadmap item) | Done |
 | **3 — Export rejects** | Download failed rows as CSV | Done |
-| **4 — Live failures (optional)** | During async import, append failed rows to the table in real time; successes stay as counts only | Planned |
 
 Row results are stored in `ImportProgressStore` (`rows` key) so results work across dynos when Redis is configured. Configure page size with `config.results_per_page` (default: 50).
 
