@@ -4,7 +4,7 @@
   <h1>Import CSV</h1>
   <p>Upload a CSV file and choose which model to populate.</p>
 
-  <%= form_with url: preview_imports_path, method: :post, multipart: true, local: true do |f| %>
+  <%= form_with url: preview_imports_path, method: :post, multipart: true, data: { turbo_frame: "_top" } do |f| %>
     <div class="field">
       <%= label_tag :csv_file, "CSV File" %>
       <%= file_field_tag :csv_file, accept: ".csv,text/csv", required: true %>

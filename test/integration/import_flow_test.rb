@@ -16,7 +16,9 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
       params: { csv_file: file, model_name: "Contact" },
       as: :multipart
 
-    assert_response :success, -> { "preview failed: #{flash[:alert]}" }
+    assert_redirected_to %r{/imports/mapping}
+    follow_redirect!
+    assert_response :success, -> { "mapping failed: #{flash[:alert]}" }
     assert_match "Map CSV Columns", response.body
 
     token = response.body[/name="token"[^>]*value="([^"]+)"/, 1] ||

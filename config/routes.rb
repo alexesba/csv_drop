@@ -6,6 +6,7 @@ CsvMapper::Engine.routes.draw do
   resources :imports, only: %i[new create show] do
     collection do
       post :preview
+      get :mapping
     end
   end
 end

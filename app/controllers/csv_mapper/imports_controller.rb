@@ -26,11 +26,28 @@ module CsvMapper
         row_count: parsed.row_count
       )
 
-      @model_name = params[:model_name]
-      @headers = parsed.headers.map(&:to_s)
+      redirect_to mapping_imports_path(token: @token)
+    rescue Error, NameError => e
+      redirect_to new_import_path, alert: e.message
+    end
+
+    def mapping
+      session = SessionStore.fetch(params[:token])
+      unless session
+        redirect_to new_import_path, alert: "Import session expired. Please upload your CSV again."
+        return
+      end
+
+      inspector = ModelInspector.new(session[:model_name])
+      parsed = Parser.parse(File.open(session[:csv_path]))
+
+      @token = params[:token]
+      @model_name = session[:model_name]
+      @headers = session[:headers]
       @preview_rows = parsed.preview_rows
       @model_columns = inspector.columns_for_select
-      @row_count = parsed.row_count
+      @row_count = session[:row_count]
+      render :preview
     rescue Error, NameError => e
       redirect_to new_import_path, alert: e.message
     end

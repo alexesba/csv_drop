@@ -19,6 +19,9 @@ class AsyncImportFlowTest < ActionDispatch::IntegrationTest
       params: { csv_file: file, model_name: "Contact" },
       as: :multipart
 
+    assert_redirected_to %r{/imports/mapping}
+    follow_redirect!
+
     token = response.body[/name="token"[^>]*value="([^"]+)"/, 1] ||
             response.body[/value="([^"]+)"[^>]*name="token"/, 1]
 
