@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "csv"
 
 class ImportFlowTest < ActionDispatch::IntegrationTest
   test "import page lists auto-discovered models" do
@@ -128,6 +129,16 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
     progress = CsvDrop::ImportProgressStore.fetch(import_id)
     assert progress[:dry_run]
     assert_equal token, progress[:session_token]
+
+    get "/csv_drop/imports/#{import_id}/rejects"
+    assert_response :success
+    assert_equal "text/csv", response.media_type
+    assert_match(/attachment; filename="dry-run-rejects-contact-/, response.headers["Content-Disposition"])
+
+    csv = CSV.parse(response.body, headers: true)
+    assert_equal 1, csv.size
+    assert_equal "alice@example.com", csv[0]["email"]
+    assert_includes csv[0]["errors"], "blank"
   end
 
   test "dry run confirm imports records" do

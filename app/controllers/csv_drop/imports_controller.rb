@@ -119,6 +119,25 @@ module CsvDrop
       end
     end
 
+    def rejects
+      import = ImportProgressStore.fetch(params[:id])
+      head :not_found and return unless import
+      head :not_found and return unless import[:status] == "completed"
+
+      snapshot = ImportResultPresenter.snapshot_from_progress(import)
+      head :no_content and return if snapshot.failure_count.zero?
+
+      csv = RejectsExporter.to_csv(
+        rows: snapshot.rows,
+        column_headers: snapshot.column_headers
+      )
+
+      send_data csv,
+        filename: rejects_filename(import),
+        type: "text/csv",
+        disposition: "attachment"
+    end
+
     private
 
     def enqueue_async_import(session, mapping)
@@ -217,6 +236,12 @@ module CsvDrop
       CsvDrop.config.resolve_importable_models.map do |model|
         [model.model_name.human, model.name]
       end
+    end
+
+    def rejects_filename(import)
+      model = import[:model_name].to_s.underscore
+      prefix = import[:dry_run] ? "dry-run-rejects" : "import-rejects"
+      "#{prefix}-#{model}-#{import[:id].to_s.first(8)}.csv"
     end
   end
 end

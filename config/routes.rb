@@ -4,6 +4,10 @@ CsvDrop::Engine.routes.draw do
   root to: "imports#new"
 
   resources :imports, only: %i[new create show] do
+    member do
+      get :rejects
+    end
+
     collection do
       post :preview
       post :dry_run

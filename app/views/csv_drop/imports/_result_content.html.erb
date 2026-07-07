@@ -39,6 +39,12 @@
           class: "btn btn-secondary",
           data: { turbo_frame: "_top" } %>
       <% end %>
+      <% if result.failure_count.positive? %>
+        <%= link_to "Download Failed Rows",
+          rejects_import_path(import_id),
+          class: "btn btn-secondary",
+          data: { turbo: false } %>
+      <% end %>
       <%= link_to "Import Another File", new_import_path, class: "btn btn-secondary", data: { turbo_frame: "_top" } %>
     </div>
   </div>
