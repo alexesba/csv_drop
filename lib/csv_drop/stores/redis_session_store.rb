@@ -13,7 +13,7 @@ module CsvDrop
         @redis = redis
       end
 
-      def create(file:, model_name:, headers:, row_count:)
+      def create(file:, model_name:, headers:, row_count:, **attrs)
         token = SecureRandom.urlsafe_base64(16)
         file_ref = @file_store.store(file, token)
 
@@ -22,7 +22,8 @@ module CsvDrop
           headers: headers,
           row_count: row_count,
           file_ref: file_ref,
-          created_at: Time.now.to_i
+          created_at: Time.now.to_i,
+          **attrs
         })
 
         token

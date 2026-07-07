@@ -25,6 +25,7 @@ require "csv_drop/stores/redis_progress_store"
 require "csv_drop/session_store"
 require "csv_drop/import_progress_store"
 require "csv_drop/import_history"
+require "csv_drop/repeat_mapping"
 require "csv_drop/import_broadcaster"
 require "csv_drop/result_snapshot"
 

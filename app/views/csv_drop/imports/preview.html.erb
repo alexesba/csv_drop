@@ -9,6 +9,11 @@
     <strong><%= @model_name %></strong>.
     Match each CSV column to a model field, or skip it.
   </p>
+  <% if @repeat_from.present? %>
+    <p class="dry-run-notice">
+      Column mapping restored from a previous import. Review fields below before importing.
+    </p>
+  <% end %>
 </div>
 
 <div class="card">
@@ -53,9 +58,9 @@
                     label += " (required)" if c[:required]
                     [label, c[:name]]
                   },
-                  CsvDrop::Mapper.auto_detect_attribute(header, @model_columns)
+                  @suggested_mappings[header]
                 ),
-                include_blank: "Auto-detect…",
+                include_blank: (@repeat_from.blank? ? "Auto-detect…" : false),
                 id: "mapping_#{header}" %>
         </div>
       </div>
@@ -69,7 +74,7 @@
         <div class="field">
           <label for="duplicate_key">Match on</label>
           <%= select_tag :duplicate_key,
-                options_for_select([["— No duplicate detection —", ""]] + @duplicate_key_options.map { |key| [key, key] }),
+                options_for_select([["— No duplicate detection —", ""]] + @duplicate_key_options.map { |key| [key, key] }, @duplicate_key),
                 id: "duplicate_key" %>
         </div>
 
@@ -80,7 +85,7 @@
                   ["Skip duplicate rows", "skip"],
                   ["Update existing records", "update"],
                   ["Fail duplicate rows", "fail"]
-                ], CsvDrop.config.default_duplicate_strategy),
+                ], @duplicate_strategy.presence || CsvDrop.config.default_duplicate_strategy),
                 id: "duplicate_strategy" %>
         </div>
       </div>

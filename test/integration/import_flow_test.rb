@@ -249,4 +249,47 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
     assert_match "Completed", response.body
     assert_match import_path.split("/").last, response.body
   end
+
+  test "repeat mapping restores settings from a completed import" do
+    file = fixture_file_upload("contacts.csv", "text/csv")
+
+    post "/csv_drop/imports/preview",
+      params: { csv_file: file, model_name: "Contact" },
+      as: :multipart
+
+    follow_redirect!
+
+    token = response.body[/name="token"[^>]*value="([^"]+)"/, 1] ||
+            response.body[/value="([^"]+)"[^>]*name="token"/, 1]
+
+    post "/csv_drop/imports", params: {
+      token: token,
+      duplicate_key: "email",
+      duplicate_strategy: "skip",
+      mapping: {
+        "name" => "name",
+        "email" => "email",
+        "role" => "role"
+      }
+    }
+
+    import_id = response.redirect_url[%r{/imports/([^/?]+)}, 1]
+
+    get "/csv_drop/imports/#{import_id}/repeat"
+    assert_response :success
+    assert_match "Repeat Import", response.body
+    assert_match "Contact", response.body
+
+    file = fixture_file_upload("contacts.csv", "text/csv")
+    post "/csv_drop/imports/preview",
+      params: { csv_file: file, repeat_from: import_id },
+      as: :multipart
+
+    follow_redirect!
+    assert_match "Column mapping restored", response.body
+    assert_select "select#mapping_name option[selected][value='name']"
+    assert_select "select#mapping_email option[selected][value='email']"
+    assert_select "select#duplicate_key option[selected][value='email']"
+    assert_select "select#duplicate_strategy option[selected][value='skip']"
+  end
 end

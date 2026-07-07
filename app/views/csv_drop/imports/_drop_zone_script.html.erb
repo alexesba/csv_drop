@@ -1,0 +1,65 @@
+<script>
+  function initCsvDropZone() {
+    const zone = document.getElementById("csv-drop-zone");
+    const input = document.getElementById("csv_file");
+    if (!zone || !input) return;
+
+    const filename = zone.querySelector(".drop-zone-filename");
+    const hint = zone.querySelector(".drop-zone-hint");
+    const title = zone.querySelector(".drop-zone-title");
+
+    const isCsv = (file) =>
+      file.name.toLowerCase().endsWith(".csv") || file.type === "text/csv";
+
+    const showFile = (file) => {
+      filename.textContent = file.name;
+      filename.hidden = false;
+      title.textContent = "Ready to import";
+      hint.textContent = "Click or drop to replace";
+      zone.classList.add("has-file");
+    };
+
+    input.addEventListener("change", () => {
+      if (input.files[0]) showFile(input.files[0]);
+    });
+
+    zone.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      zone.classList.add("drag-over");
+    });
+
+    zone.addEventListener("dragleave", (event) => {
+      if (!zone.contains(event.relatedTarget)) {
+        zone.classList.remove("drag-over");
+      }
+    });
+
+    zone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      zone.classList.remove("drag-over");
+
+      const file = event.dataTransfer.files[0];
+      if (!file) return;
+
+      if (!isCsv(file)) {
+        window.alert("Please drop a CSV file.");
+        return;
+      }
+
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      input.files = transfer.files;
+      showFile(file);
+    });
+
+    zone.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        input.click();
+      }
+    });
+  }
+
+  document.addEventListener("turbo:load", initCsvDropZone);
+  document.addEventListener("DOMContentLoaded", initCsvDropZone);
+</script>

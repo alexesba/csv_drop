@@ -17,15 +17,21 @@ module CsvDrop
       fetch!(params[:token])
     end
 
-    def self.create_from_upload!(file:, model_name:)
+    def self.create_from_upload!(file:, model_name:, repeat_from: nil)
       io = open_upload(file)
       parsed = Parser.parse(io)
+      template = RepeatMapping.from_import(repeat_from) if repeat_from.present?
+
+      if template && model_name != template.model_name
+        raise Error, "Target model must be #{template.model_name} when repeating a previous import."
+      end
 
       token = SessionStore.create(
         file: io,
         model_name: model_name,
         headers: parsed.headers.map(&:to_s),
-        row_count: parsed.row_count
+        row_count: parsed.row_count,
+        **(template&.session_attrs || {})
       )
 
       fetch!(token)
@@ -102,15 +108,51 @@ module CsvDrop
     def mapping_context
       inspector = ModelInspector.new(model_name)
       parsed = Parser.parse(open_csv)
+      model_columns = inspector.columns_for_select
 
       {
         model_name: model_name,
         headers: headers,
         preview_rows: parsed.preview_rows,
-        model_columns: inspector.columns_for_select,
+        model_columns: model_columns,
         duplicate_key_options: inspector.duplicate_key_options,
-        row_count: row_count
+        row_count: row_count,
+        suggested_mappings: suggested_mappings(model_columns),
+        duplicate_key: data[:duplicate_key],
+        duplicate_strategy: data[:duplicate_strategy],
+        repeat_from: data[:repeat_from]
       }
+    end
+
+    def suggested_mappings(model_columns = nil)
+      model_columns ||= ModelInspector.new(model_name).columns_for_select
+      template = repeat_template
+
+      headers.each_with_object({}) do |header, result|
+        result[header] = if template
+                           template.mapping_for_header(header, model_columns: model_columns)
+                         else
+                           Mapper.auto_detect_attribute(header, model_columns) || Mapper::SKIP
+                         end
+      end
+    end
+
+    def repeat_template?
+      data[:saved_mapping].present?
+    end
+
+    private
+
+    def repeat_template
+      return nil unless data[:saved_mapping].present?
+
+      RepeatMapping.new(
+        import_id: data[:repeat_from],
+        model_name: model_name,
+        mapping: RepeatMapping.normalize_mapping(data[:saved_mapping]),
+        duplicate_key: data[:duplicate_key],
+        duplicate_strategy: data[:duplicate_strategy]
+      )
     end
   end
 end

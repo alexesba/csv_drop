@@ -6,6 +6,7 @@ CsvDrop::Engine.routes.draw do
   resources :imports, only: %i[index new create show] do
     member do
       get :rejects
+      get :repeat
     end
 
     collection do

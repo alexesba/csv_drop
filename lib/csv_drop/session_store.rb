@@ -5,12 +5,13 @@ require "stringio"
 module CsvDrop
   class SessionStore
     class << self
-      def create(file:, model_name:, headers:, row_count:)
+      def create(file:, model_name:, headers:, row_count:, **attrs)
         adapter.create(
           file: file,
           model_name: model_name,
           headers: headers,
-          row_count: row_count
+          row_count: row_count,
+          **attrs
         )
       end
 

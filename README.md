@@ -170,7 +170,7 @@ result.errors         # => per-row validation failures
 - [x] Duplicate detection / upsert — match on a unique column; skip, update, or fail duplicates
 - [ ] **Customizable UI** — extract inline CSS/JS into gem assets (vanilla ES modules + `data-*` hooks) so host apps can override views/styles without forking behavior
 - [x] **Import history** — list past import runs with model, status, counts, and links back to results
-- [ ] **Repeat mapping** — start a new import reusing model, column mapping, and duplicate settings from a past run
+- [x] **Repeat mapping** — start a new import reusing model, column mapping, and duplicate settings from a past run
 - [ ] **Record links** — capture created/updated record IDs on success and link out to the host app (configurable path helper)
 
 ### Import results table
@@ -189,6 +189,10 @@ Row results are stored in `ImportProgressStore` (`rows` key) so results work acr
 ### Import history
 
 Visit **Past Imports** (`/csv_drop/imports`) to see recent runs — model, status, row counts, and a link back to the full results page. History reads from the same progress store as live imports; configure how many entries appear with `config.history_limit` (default: 50). Entries expire when the progress store TTL elapses (`config.progress_ttl`, default: 24 hours).
+
+### Repeat mapping
+
+From a completed import's results page or import history, choose **Repeat Mapping** to upload a new CSV into the same model with the previous column mapping and duplicate settings pre-filled. New CSV columns still auto-detect when they were not part of the earlier import.
 
 ## Testing
 
