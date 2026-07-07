@@ -43,6 +43,51 @@ module CsvMapper
       end
 
       mapping = params.fetch(:mapping, {}).to_unsafe_h
+
+      if CsvMapper.config.async_import?(session[:row_count])
+        enqueue_async_import(session, mapping)
+      else
+        run_sync_import(session, mapping)
+      end
+    rescue Error => e
+      redirect_to new_import_path, alert: e.message
+    end
+
+    def show
+      @import = ImportProgressStore.fetch(params[:id])
+      head :not_found and return unless @import
+
+      if turbo_frame_request?
+        render_status_frame
+      else
+        @import_id = params[:id]
+        render :processing
+      end
+    end
+
+    private
+
+    def enqueue_async_import(session, mapping)
+      import_id = ImportProgressStore.create(
+        model_name: session[:model_name],
+        total_rows: session[:row_count],
+        mapping: mapping
+      )
+
+      ImportJob.perform_later(
+        import_id: import_id,
+        csv_path: session[:csv_path],
+        model_name: session[:model_name],
+        mapping: mapping,
+        session_token: params[:token]
+      )
+
+      @import_id = import_id
+      @import = ImportProgressStore.fetch(import_id)
+      render :processing, status: :accepted
+    end
+
+    def run_sync_import(session, mapping)
       importer = Importer.new(session[:model_name], mapping)
       result = importer.import_from_file(session[:csv_path])
 
@@ -51,11 +96,38 @@ module CsvMapper
       @result = result
       @model_name = session[:model_name]
       render :result
-    rescue Error => e
-      redirect_to new_import_path, alert: e.message
     end
 
-    private
+    def render_status_frame
+      case @import[:status]
+      when "completed"
+        render partial: "result_content", locals: {
+          result: result_from_progress(@import),
+          model_name: @import[:model_name]
+        }
+      when "failed"
+        render partial: "failed", locals: { import: @import }
+      else
+        render partial: "progress", locals: { import: @import }
+      end
+    end
+
+    def result_from_progress(import)
+      errors = import.fetch(:errors, []).map do |error|
+        Result::RowError.new(
+          row_number: error[:row_number] || error["row_number"],
+          attributes: error[:attributes] || error["attributes"],
+          messages: error[:messages] || error["messages"]
+        )
+      end
+
+      ResultSnapshot.new(
+        total_rows: import[:total_rows],
+        success_count: import[:success_count],
+        failure_count: import[:failure_count],
+        errors: errors
+      )
+    end
 
     def upload_io(upload)
       io = upload.respond_to?(:tempfile) ? upload.tempfile : upload

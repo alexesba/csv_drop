@@ -34,7 +34,7 @@
 <div class="card">
   <h2>Column Mapping</h2>
 
-  <%= form_with url: imports_path, method: :post, local: true do |f| %>
+  <%= form_with url: imports_path, method: :post, data: { turbo_frame: "_top" } do |f| %>
     <%= hidden_field_tag :token, @token %>
 
     <% @headers.each do |header| %>
