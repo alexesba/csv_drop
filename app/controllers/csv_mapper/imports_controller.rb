@@ -13,11 +13,14 @@ module CsvMapper
         return
       end
 
-      parsed = Parser.parse(params[:csv_file].tempfile)
+      upload = params[:csv_file]
+      io = upload_io(upload)
+
+      parsed = Parser.parse(io)
       inspector = ModelInspector.new(params[:model_name])
 
       @token = SessionStore.create(
-        file: params[:csv_file].tempfile,
+        file: io,
         model_name: params[:model_name],
         headers: parsed.headers.map(&:to_s),
         row_count: parsed.row_count
@@ -53,6 +56,12 @@ module CsvMapper
     end
 
     private
+
+    def upload_io(upload)
+      io = upload.respond_to?(:tempfile) ? upload.tempfile : upload
+      io.rewind
+      io
+    end
 
     def importable_model_options
       CsvMapper.config.resolve_importable_models.map do |model|
