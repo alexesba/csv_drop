@@ -3,7 +3,7 @@
     <h1>Import Failed</h1>
     <p class="alert alert-error"><%= import[:error_message] %></p>
     <div class="actions">
-      <%= link_to "Start Over", new_import_path, class: "btn" %>
+      <%= link_to "Start Over", new_import_path, class: "btn", data: { turbo_frame: "_top" } %>
     </div>
   </div>
 <% end %>

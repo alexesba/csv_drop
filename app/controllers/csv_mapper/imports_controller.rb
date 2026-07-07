@@ -117,9 +117,28 @@ module CsvMapper
 
       SessionStore.destroy(params[:token])
 
-      @result = result
-      @model_name = session[:model_name]
-      render :result
+      import_id = ImportProgressStore.create(
+        model_name: session[:model_name],
+        total_rows: result.total_rows,
+        mapping: mapping,
+        status: "completed",
+        processed_rows: result.total_rows,
+        success_count: result.success_count,
+        failure_count: result.failure_count,
+        errors: serialize_errors(result)
+      )
+
+      redirect_to import_path(import_id)
+    end
+
+    def serialize_errors(result)
+      result.errors.map do |error|
+        {
+          row_number: error.row_number,
+          attributes: error.attributes,
+          messages: error.messages
+        }
+      end
     end
 
     def render_status_frame

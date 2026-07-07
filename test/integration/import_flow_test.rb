@@ -36,6 +36,8 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
       }
     end
 
+    assert_redirected_to %r{/imports/}
+    follow_redirect!
     assert_response :success
     assert_match "Import Complete", response.body
     assert_equal "Alice", Contact.find_by!(email: "alice@example.com").name
