@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CSV Import — <%= content_for?(:title) ? yield(:title) : "CsvMapper" %></title>
     <%= csrf_meta_tags %>
+    <%= yield :head %>
     <% if Rails.application.respond_to?(:importmap) && Rails.application.importmap %>
       <%= javascript_importmap_tags %>
     <% else %>

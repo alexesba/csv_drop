@@ -36,11 +36,11 @@ class AsyncImportFlowTest < ActionDispatch::IntegrationTest
       }
     end
 
-    assert_response :accepted
-    assert_match "Importing", response.body
+    assert_redirected_to %r{/imports/}
+    import_id = response.redirect_url[%r{/imports/([^/?]+)}, 1]
 
-    import_id = response.body[/data-import-id="([^"]+)"/, 1]
-    assert import_id, "expected import id on processing page"
+    follow_redirect!
+    assert_match "Import Complete", response.body
 
     progress = CsvMapper::ImportProgressStore.fetch(import_id)
     assert_equal "completed", progress[:status]

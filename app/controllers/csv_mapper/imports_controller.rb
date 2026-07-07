@@ -74,10 +74,19 @@ module CsvMapper
       @import = ImportProgressStore.fetch(params[:id])
       head :not_found and return unless @import
 
+      @import_id = params[:id]
+
       if turbo_frame_request?
         render_status_frame
+        return
+      end
+
+      case @import[:status]
+      when "completed"
+        @result = result_from_progress(@import)
+        @model_name = @import[:model_name]
+        render :result
       else
-        @import_id = params[:id]
         render :processing
       end
     end
@@ -99,9 +108,7 @@ module CsvMapper
         session_token: params[:token]
       )
 
-      @import_id = import_id
-      @import = ImportProgressStore.fetch(import_id)
-      render :processing, status: :accepted
+      redirect_to import_path(import_id)
     end
 
     def run_sync_import(session, mapping)
