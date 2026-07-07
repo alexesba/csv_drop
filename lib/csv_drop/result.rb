@@ -13,7 +13,7 @@ module CsvDrop
     end
 
     def success_count
-      @rows.count { |row| row.status == :imported }
+      @rows.count { |row| row.status.in?(%i[imported valid]) }
     end
 
     def failure_count

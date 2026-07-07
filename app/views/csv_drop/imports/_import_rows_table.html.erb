@@ -20,7 +20,7 @@
               <td><%= row.row_number %></td>
               <td>
                 <span class="status-badge status-<%= row.status %>">
-                  <%= row.status == :imported ? "Imported" : "Failed" %>
+                  <%= row.status == :failed ? "Failed" : (dry_run ? "Valid" : "Imported") %>
                 </span>
               </td>
               <% result.column_headers.each do |header| %>

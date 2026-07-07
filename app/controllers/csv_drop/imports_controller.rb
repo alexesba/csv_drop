@@ -75,6 +75,25 @@ module CsvDrop
       redirect_to new_import_path, alert: e.message
     end
 
+    def dry_run
+      session = SessionStore.fetch(params[:token])
+      unless session
+        redirect_to new_import_path, alert: "Import session expired. Please upload your CSV again."
+        return
+      end
+
+      inspector = ModelInspector.new(session[:model_name])
+      mapping = Mapper.resolve_mapping(
+        params.fetch(:mapping, {}).to_unsafe_h,
+        session[:headers],
+        inspector.columns_for_select
+      )
+
+      run_dry_run(session, mapping)
+    rescue Error => e
+      redirect_to new_import_path, alert: e.message
+    end
+
     def show
       @import = ImportProgressStore.fetch(params[:id])
       head :not_found and return unless @import
@@ -91,6 +110,9 @@ module CsvDrop
         @result = ImportResultPresenter.snapshot_from_progress(@import)
         @model_name = @import[:model_name]
         @import_results = build_import_results(@result.rows)
+        @dry_run = @import[:dry_run]
+        @session_token = @import[:session_token]
+        @mapping = @import[:mapping]
         render :result
       else
         render :processing
@@ -137,12 +159,35 @@ module CsvDrop
       redirect_to import_path(import_id)
     end
 
+    def run_dry_run(session, mapping)
+      importer = Importer.new(session[:model_name], mapping)
+      result = importer.dry_run_from_io(SessionStore.open_csv(session))
+
+      import_id = ImportProgressStore.create(
+        model_name: session[:model_name],
+        total_rows: result.total_rows,
+        mapping: mapping,
+        status: "completed",
+        processed_rows: result.total_rows,
+        success_count: result.success_count,
+        failure_count: result.failure_count,
+        rows: ImportResultPresenter.serialize_rows(result),
+        dry_run: true,
+        session_token: params[:token]
+      )
+
+      redirect_to import_path(import_id)
+    end
+
     def result_content_locals(result)
       {
         result: result,
         model_name: @import[:model_name],
         import_id: @import_id,
-        import_results: build_import_results(result.rows)
+        import_results: build_import_results(result.rows),
+        dry_run: @import[:dry_run],
+        session_token: @import[:session_token],
+        mapping: @import[:mapping]
       }
     end
 

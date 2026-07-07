@@ -93,4 +93,71 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
     assert_equal "alice@example.com", result.rows.first.values["email"]
     assert_includes result.errors.first.messages.join, "can't be blank"
   end
+
+  test "dry run previews validation results without saving" do
+    file = fixture_file_upload("contacts_invalid.csv", "text/csv")
+
+    post "/csv_drop/imports/preview",
+      params: { csv_file: file, model_name: "Contact" },
+      as: :multipart
+
+    follow_redirect!
+
+    token = response.body[/name="token"[^>]*value="([^"]+)"/, 1] ||
+            response.body[/value="([^"]+)"[^>]*name="token"/, 1]
+
+    assert_no_difference "Contact.count" do
+      post "/csv_drop/imports/dry_run", params: {
+        token: token,
+        mapping: {
+          "name" => "name",
+          "email" => "email",
+          "role" => "role"
+        }
+      }
+    end
+
+    import_id = response.redirect_url[%r{/imports/([^/?]+)}, 1]
+    follow_redirect!
+
+    assert_match "Dry Run Complete", response.body
+    assert_match "no records were saved", response.body
+    assert_match "Valid", response.body
+    assert_match "Import 2 Rows", response.body
+
+    progress = CsvDrop::ImportProgressStore.fetch(import_id)
+    assert progress[:dry_run]
+    assert_equal token, progress[:session_token]
+  end
+
+  test "dry run confirm imports records" do
+    file = fixture_file_upload("contacts_invalid.csv", "text/csv")
+
+    post "/csv_drop/imports/preview",
+      params: { csv_file: file, model_name: "Contact" },
+      as: :multipart
+
+    follow_redirect!
+
+    token = response.body[/name="token"[^>]*value="([^"]+)"/, 1] ||
+            response.body[/value="([^"]+)"[^>]*name="token"/, 1]
+
+    post "/csv_drop/imports/dry_run", params: {
+      token: token,
+      mapping: { "name" => "name", "email" => "email", "role" => "role" }
+    }
+
+    follow_redirect!
+
+    assert_difference "Contact.count", 1 do
+      post "/csv_drop/imports", params: {
+        token: token,
+        mapping: { "name" => "name", "email" => "email", "role" => "role" }
+      }
+    end
+
+    follow_redirect!
+    assert_match "Import Complete", response.body
+    refute_match "no records were saved", response.body
+  end
 end

@@ -1,7 +1,10 @@
-<% content_for :title, "Import Results" %>
+<% content_for :title, @dry_run ? "Dry Run Results" : "Import Results" %>
 
 <%= render "result_content",
   result: @result,
   model_name: @model_name,
   import_id: @import_id,
-  import_results: @import_results %>
+  import_results: @import_results,
+  dry_run: @dry_run,
+  session_token: @session_token,
+  mapping: @mapping %>

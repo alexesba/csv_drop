@@ -53,13 +53,19 @@
                   },
                   CsvDrop::Mapper.auto_detect_attribute(header, @model_columns)
                 ),
-                include_blank: "Auto-detect…" %>
+                include_blank: "Auto-detect…",
+                id: "mapping_#{header}" %>
         </div>
       </div>
     <% end %>
 
     <div class="actions">
       <%= submit_tag "Import #{@row_count} Rows", class: "btn" %>
+      <%= button_tag "Preview Import",
+            type: "submit",
+            formaction: dry_run_imports_path,
+            formmethod: "post",
+            class: "btn btn-secondary" %>
       <%= link_to "Start Over", new_import_path, class: "btn btn-secondary" %>
     </div>
   <% end %>

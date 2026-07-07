@@ -27,7 +27,10 @@ module CsvDrop
             result: result,
             model_name: model_name,
             import_id: import_id,
-            import_results: import_results
+            import_results: import_results,
+            dry_run: false,
+            session_token: nil,
+            mapping: {}
           }
         )
       end

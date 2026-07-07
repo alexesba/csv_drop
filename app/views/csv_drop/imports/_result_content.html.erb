@@ -1,12 +1,19 @@
 <%= turbo_frame_tag CsvDrop::ImportBroadcaster::FRAME_ID do %>
   <div class="card">
-    <h1>Import Complete</h1>
-    <p>Results for importing into <strong><%= model_name %></strong>.</p>
+    <% if dry_run %>
+      <h1>Dry Run Complete</h1>
+      <p class="dry-run-notice">
+        Validation preview for <strong><%= model_name %></strong> — no records were saved.
+      </p>
+    <% else %>
+      <h1>Import Complete</h1>
+      <p>Results for importing into <strong><%= model_name %></strong>.</p>
+    <% end %>
 
     <div class="stats">
       <div>
         <div class="stat-value" style="color: var(--success);"><%= result.success_count %></div>
-        <div class="stat-label">Imported</div>
+        <div class="stat-label"><%= dry_run ? "Valid" : "Imported" %></div>
       </div>
       <div>
         <div class="stat-value" style="color: var(--error);"><%= result.failure_count %></div>
@@ -19,12 +26,26 @@
     </div>
 
     <div class="actions">
-      <%= link_to "Import Another File", new_import_path, class: "btn", data: { turbo_frame: "_top" } %>
+      <% if dry_run && session_token.present? %>
+        <%= form_with url: imports_path, method: :post, data: { turbo_frame: "_top" } do %>
+          <%= hidden_field_tag :token, session_token %>
+          <% mapping.each do |column, attribute| %>
+            <%= hidden_field_tag "mapping[#{column}]", attribute %>
+          <% end %>
+          <%= submit_tag "Import #{result.total_rows} Rows", class: "btn" %>
+        <% end %>
+        <%= link_to "Adjust Mapping",
+          mapping_imports_path(token: session_token),
+          class: "btn btn-secondary",
+          data: { turbo_frame: "_top" } %>
+      <% end %>
+      <%= link_to "Import Another File", new_import_path, class: "btn btn-secondary", data: { turbo_frame: "_top" } %>
     </div>
   </div>
 
   <%= render "csv_drop/imports/import_rows_table",
     result: result,
     import_results: import_results,
-    import_id: import_id %>
+    import_id: import_id,
+    dry_run: dry_run %>
 <% end %>

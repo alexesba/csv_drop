@@ -23,6 +23,8 @@ module CsvDrop
           mapping: mapping,
           errors: attrs.fetch(:errors, []),
           rows: attrs.fetch(:rows, []),
+          dry_run: attrs.fetch(:dry_run, false),
+          session_token: attrs.fetch(:session_token, nil),
           error_message: attrs.fetch(:error_message, nil),
           created_at: Time.now.to_i,
           updated_at: Time.now.to_i
