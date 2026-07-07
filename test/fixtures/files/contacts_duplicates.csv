@@ -1,0 +1,8 @@
+name,email,role
+Alice,alice@example.com,admin
+Bob,bob@example.com,user
+Charlie,charlie@example.com,user
+Dana,dana@example.com,admin
+Alice Updated,alice@example.com,user
+Duplicate In File,shared@example.com,user
+Also Duplicate,shared@example.com,admin

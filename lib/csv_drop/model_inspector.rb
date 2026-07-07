@@ -25,9 +25,11 @@ module CsvDrop
     end
 
     def duplicate_key_options
-      (CsvDrop.config.duplicate_keys_for(model_class) + unique_index_columns)
-        .uniq
-        .select { |name| column_names.include?(name) }
+      (
+        CsvDrop.config.duplicate_keys_for(model_class) +
+        unique_index_columns +
+        likely_key_columns
+      ).uniq.select { |name| column_names.include?(name) }
     end
 
     def importable_columns
@@ -37,6 +39,16 @@ module CsvDrop
     end
 
     private
+
+    LIKELY_KEY_NAMES = %w[email uuid slug sku code external_id username].freeze
+
+    def likely_key_columns
+      column_names.select do |name|
+        normalized = name.downcase
+        LIKELY_KEY_NAMES.include?(normalized) ||
+          normalized.end_with?("_id", "_uuid", "_code", "_slug", "_sku")
+      end
+    end
 
     def unique_index_columns
       model_class.connection.indexes(model_class.table_name)

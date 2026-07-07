@@ -207,6 +207,7 @@ Then open http://localhost:3000/csv_drop:
 | File | Rows | Behavior |
 |------|------|----------|
 | `test/fixtures/files/contacts.csv` | 2 | Sync import (instant results) |
+| `test/fixtures/files/contacts_duplicates.csv` | 7 | Duplicate detection — import `contacts.csv` first, then this file with **Match on: email** |
 | `test/fixtures/files/contacts_large.csv` | 55 | Async import (Turbo progress UI) |
 
 Upload into the **Contact** model and map `name`, `email`, `role`.
