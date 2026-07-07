@@ -9,6 +9,9 @@ require "csv_mapper/mapper"
 require "csv_mapper/result"
 require "csv_mapper/importer"
 require "csv_mapper/session_store"
+require "csv_mapper/import_progress_store"
+require "csv_mapper/import_broadcaster"
+require "csv_mapper/result_snapshot"
 
 module CsvMapper
   class Error < StandardError; end

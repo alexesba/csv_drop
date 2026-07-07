@@ -2,7 +2,8 @@
 
 module CsvMapper
   class Configuration
-    attr_accessor :importable_models, :excluded_models, :excluded_columns, :max_rows, :batch_size, :mount_path
+    attr_accessor :importable_models, :excluded_models, :excluded_columns, :max_rows, :batch_size,
+                  :mount_path, :async_imports, :async_row_threshold, :progress_broadcast_every
 
     def initialize
       @importable_models = nil # nil = auto-discover all ActiveRecord models
@@ -11,6 +12,13 @@ module CsvMapper
       @max_rows = nil
       @batch_size = 100
       @mount_path = "/csv_import"
+      @async_imports = true
+      @async_row_threshold = 50
+      @progress_broadcast_every = 10
+    end
+
+    def async_import?(row_count)
+      async_imports && row_count >= async_row_threshold
     end
 
     def resolve_importable_models
