@@ -17,4 +17,9 @@
 #
 #   # Cap rows per import
 #   # config.max_rows = 10_000
+#
+#   # Async imports for large files (Turbo Frame progress UI)
+#   # config.async_imports = true
+#   # config.async_row_threshold = 50
+#   # config.progress_broadcast_every = 10
 # end

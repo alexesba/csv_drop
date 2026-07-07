@@ -21,6 +21,7 @@ No configuration required.
 - Manual CSV column → field mapping (with auto-detect)
 - Preview first 5 rows before importing
 - Row-by-row `save` with validation error reporting
+- Background imports with Turbo Frame progress for large files
 - Optional config only when you need to restrict models or columns
 
 ## Installation
@@ -69,8 +70,21 @@ CsvMapper.configure do |config|
 
   # Cap rows per import
   config.max_rows = 10_000
+
+  # Async imports for large files (Turbo Frame progress UI)
+  config.async_imports = true
+  config.async_row_threshold = 50
+  config.progress_broadcast_every = 10
 end
 ```
+
+## Async imports (Turbo Frames)
+
+Imports at or above `async_row_threshold` rows are enqueued via `CsvMapper::ImportJob`. The UI shows a progress Turbo Frame that updates over Action Cable and swaps to the results view when complete.
+
+Small imports (below the threshold) still run synchronously in the request.
+
+Requires `turbo-rails` and Action Cable (standard in Rails 7+ host apps).
 
 ## Programmatic API
 
@@ -96,7 +110,7 @@ result.errors         # => per-row validation failures
 ## Roadmap
 
 - [ ] **Dry run** — preview import results without saving
-- [ ] **Turbo Frames + background jobs** — enqueue large imports, show progress, update UI on completion
+- [x] **Turbo Frames + background jobs** — enqueue large imports, show progress, update UI on completion
 - [ ] Multi-model imports (associations)
 - [ ] `insert_all` batch mode for large files
 - [ ] Duplicate detection / upsert
