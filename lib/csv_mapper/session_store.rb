@@ -16,10 +16,10 @@ module CsvMapper
         FileUtils.mkdir_p(dir)
 
         csv_path = dir.join("#{token}.csv")
-        FileUtils.cp(file.path, csv_path)
+        FileUtils.cp(file.path, csv_path.to_s)
 
         meta_path = dir.join("#{token}.json")
-        File.write(meta_path, {
+        File.write(meta_path.to_s, {
           model_name: model_name,
           headers: headers,
           row_count: row_count,
@@ -35,10 +35,10 @@ module CsvMapper
         csv_path = session_dir.join("#{token}.csv")
         meta_path = session_dir.join("#{token}.json")
 
-        return nil unless File.exist?(csv_path) && File.exist?(meta_path)
+        return nil unless csv_path.exist? && meta_path.exist?
 
         meta = JSON.parse(File.read(meta_path), symbolize_names: true)
-        { csv_path: csv_path, **meta }
+        { csv_path: csv_path.to_s, **meta }
       end
 
       def destroy(token)
@@ -49,21 +49,21 @@ module CsvMapper
       private
 
       def session_dir
-        Pathname.new(Dir.tmpdir).join("csv_mapper", "sessions").to_s
+        Pathname.new(Dir.tmpdir).join("csv_mapper", "sessions")
       end
 
       def cleanup_expired!
         dir = session_dir
-        return unless File.directory?(dir)
+        return unless dir.directory?
 
         cutoff = Time.now.to_i - SESSION_TTL.to_i
-        Dir.glob(File.join(dir, "*.json")).each do |meta_path|
+        Dir.glob(dir.join("*.json").to_s).each do |meta_path|
           meta = JSON.parse(File.read(meta_path))
           next if meta["created_at"].to_i >= cutoff
 
           token = File.basename(meta_path, ".json")
           FileUtils.rm_f(meta_path)
-          FileUtils.rm_f(File.join(dir, "#{token}.csv"))
+          FileUtils.rm_f(dir.join("#{token}.csv"))
         end
       end
     end
