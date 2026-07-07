@@ -4,10 +4,11 @@ set -euo pipefail
 cd "$(dirname "$0")/../test/dummy"
 
 bundle check >/dev/null 2>&1 || bundle install
-bundle exec rails db:prepare
+bundle exec rails db:reset
 
 echo ""
 echo "Starting demo app at http://localhost:3000/csv_drop"
+echo "(database reset — Contact table is empty)"
 echo ""
 echo "Fixtures (from repo root test/fixtures/files/):"
 echo "  contacts.csv       — 2 rows (sync import)"
