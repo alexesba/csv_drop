@@ -41,6 +41,24 @@ module CsvDrop
       result.rows.map { |row| serialize_row(row) }
     end
 
+    def serialize_failed_rows(result)
+      result.rows.select { |row| row.status == :failed }.map { |row| serialize_row(row) }
+    end
+
+    def live_failures_snapshot(import)
+      mapping = import[:mapping] || import["mapping"] || {}
+      rows = normalize_rows(import[:failed_rows] || import["failed_rows"] || [])
+
+      ResultSnapshot.new(
+        total_rows: rows.size,
+        success_count: 0,
+        failure_count: rows.size,
+        errors: errors_from_rows(rows),
+        rows: rows,
+        column_headers: column_headers(mapping)
+      )
+    end
+
     def serialize_row(row)
       {
         row_number: row.row_number,

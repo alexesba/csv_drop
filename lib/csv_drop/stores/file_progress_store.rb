@@ -23,6 +23,7 @@ module CsvDrop
           mapping: mapping,
           errors: attrs.fetch(:errors, []),
           rows: attrs.fetch(:rows, []),
+          failed_rows: attrs.fetch(:failed_rows, []),
           dry_run: attrs.fetch(:dry_run, false),
           session_token: attrs.fetch(:session_token, nil),
           error_message: attrs.fetch(:error_message, nil),

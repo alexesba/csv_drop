@@ -50,4 +50,24 @@ class ImportResultPresenterTest < ActiveSupport::TestCase
     assert_equal :failed, snapshot.rows.first.status
     assert_includes snapshot.errors.first.messages.join, "can't be blank"
   end
+
+  test "live_failures_snapshot reads failed_rows from import progress" do
+    import = {
+      mapping: { "name" => "name", "email" => "email" },
+      failed_rows: [
+        {
+          row_number: 2,
+          status: "failed",
+          values: { "name" => "", "email" => "alice@example.com" },
+          messages: ["Name can't be blank"]
+        }
+      ]
+    }
+
+    snapshot = CsvDrop::ImportResultPresenter.live_failures_snapshot(import)
+
+    assert_equal %w[name email], snapshot.column_headers
+    assert_equal 1, snapshot.rows.size
+    assert_equal :failed, snapshot.rows.first.status
+  end
 end

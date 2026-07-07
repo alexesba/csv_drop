@@ -18,9 +18,13 @@ module CsvDrop
       broadcast_every = CsvDrop.config.progress_broadcast_every
 
       result = importer.import(parsed.rows) do |stats|
-        next unless stats[:processed_rows] % broadcast_every == 0 || stats[:processed_rows] == stats[:total_rows]
+        broadcast = stats[:failure_added] ||
+                    stats[:processed_rows] % broadcast_every == 0 ||
+                    stats[:processed_rows] == stats[:total_rows]
+        next unless broadcast
 
-        updated = ImportProgressStore.update(import_id, stats)
+        attrs = stats.except(:failure_added)
+        updated = ImportProgressStore.update(import_id, attrs)
         ImportBroadcaster.broadcast_progress(import_id, import: updated)
       end
 
@@ -34,7 +38,8 @@ module CsvDrop
         processed_rows: result.total_rows,
         success_count: result.success_count,
         failure_count: result.failure_count,
-        rows: ImportResultPresenter.serialize_rows(result)
+        rows: ImportResultPresenter.serialize_rows(result),
+        failed_rows: []
       )
 
       ImportBroadcaster.broadcast_result(

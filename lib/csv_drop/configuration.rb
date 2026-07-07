@@ -4,7 +4,7 @@ module CsvDrop
   class Configuration
     attr_accessor :importable_models, :excluded_models, :excluded_columns, :max_rows, :batch_size,
                   :mount_path, :async_imports, :async_row_threshold, :progress_broadcast_every,
-                  :results_per_page, :session_store, :progress_store, :file_store, :redis, :session_ttl,
+                  :live_failures_during_import, :results_per_page, :session_store, :progress_store, :file_store, :redis, :session_ttl,
                   :progress_ttl
 
     def initialize
@@ -17,6 +17,7 @@ module CsvDrop
       @async_imports = true
       @async_row_threshold = 50
       @progress_broadcast_every = 10
+      @live_failures_during_import = true
       @results_per_page = 50
       @session_store = :auto
       @progress_store = :auto
