@@ -24,6 +24,12 @@ module CsvDrop
       end
     end
 
+    def duplicate_key_options
+      (CsvDrop.config.duplicate_keys_for(model_class) + unique_index_columns)
+        .uniq
+        .select { |name| column_names.include?(name) }
+    end
+
     def importable_columns
       model_class.columns.reject do |column|
         CsvDrop.config.excluded_columns.map(&:to_s).include?(column.name)
@@ -31,6 +37,14 @@ module CsvDrop
     end
 
     private
+
+    def unique_index_columns
+      model_class.connection.indexes(model_class.table_name)
+        .select(&:unique)
+        .flat_map(&:columns)
+        .select { |name| column_names.include?(name) }
+        .uniq
+    end
 
     def validate_importable!
       allowed = CsvDrop.config.resolve_importable_models

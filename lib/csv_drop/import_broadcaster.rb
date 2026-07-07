@@ -30,7 +30,9 @@ module CsvDrop
             import_results: import_results,
             dry_run: false,
             session_token: nil,
-            mapping: {}
+            mapping: {},
+            duplicate_key: nil,
+            duplicate_strategy: nil
           }
         )
       end

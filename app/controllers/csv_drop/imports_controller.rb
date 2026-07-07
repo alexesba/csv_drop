@@ -46,6 +46,7 @@ module CsvDrop
       @headers = session[:headers]
       @preview_rows = parsed.preview_rows
       @model_columns = inspector.columns_for_select
+      @duplicate_key_options = inspector.duplicate_key_options
       @row_count = session[:row_count]
       render :preview
     rescue Error, NameError => e
@@ -113,6 +114,7 @@ module CsvDrop
         @dry_run = @import[:dry_run]
         @session_token = @import[:session_token]
         @mapping = @import[:mapping]
+        @duplicate_key = @import[:duplicate_key]
         render :result
       else
         render :processing
@@ -144,7 +146,8 @@ module CsvDrop
       import_id = ImportProgressStore.create(
         model_name: session[:model_name],
         total_rows: session[:row_count],
-        mapping: mapping
+        mapping: mapping,
+        **duplicate_options
       )
 
       ImportJob.perform_later(
@@ -152,14 +155,15 @@ module CsvDrop
         file_ref: session[:file_ref],
         model_name: session[:model_name],
         mapping: mapping,
-        session_token: params[:token]
+        session_token: params[:token],
+        **duplicate_options
       )
 
       redirect_to import_path(import_id)
     end
 
     def run_sync_import(session, mapping)
-      importer = Importer.new(session[:model_name], mapping)
+      importer = build_importer(session[:model_name], mapping)
       result = importer.import_from_io(SessionStore.open_csv(session))
 
       SessionStore.destroy(params[:token])
@@ -167,32 +171,24 @@ module CsvDrop
       import_id = ImportProgressStore.create(
         model_name: session[:model_name],
         total_rows: result.total_rows,
-        mapping: mapping,
         status: "completed",
-        processed_rows: result.total_rows,
-        success_count: result.success_count,
-        failure_count: result.failure_count,
-        rows: ImportResultPresenter.serialize_rows(result)
+        **progress_attrs_from_result(result, mapping: mapping)
       )
 
       redirect_to import_path(import_id)
     end
 
     def run_dry_run(session, mapping)
-      importer = Importer.new(session[:model_name], mapping)
+      importer = build_importer(session[:model_name], mapping)
       result = importer.dry_run_from_io(SessionStore.open_csv(session))
 
       import_id = ImportProgressStore.create(
         model_name: session[:model_name],
         total_rows: result.total_rows,
-        mapping: mapping,
         status: "completed",
-        processed_rows: result.total_rows,
-        success_count: result.success_count,
-        failure_count: result.failure_count,
-        rows: ImportResultPresenter.serialize_rows(result),
         dry_run: true,
-        session_token: params[:token]
+        session_token: params[:token],
+        **progress_attrs_from_result(result, mapping: mapping)
       )
 
       redirect_to import_path(import_id)
@@ -206,7 +202,36 @@ module CsvDrop
         import_results: build_import_results(result.rows),
         dry_run: @import[:dry_run],
         session_token: @import[:session_token],
-        mapping: @import[:mapping]
+        mapping: @import[:mapping],
+        duplicate_key: @import[:duplicate_key],
+        duplicate_strategy: @import[:duplicate_strategy]
+      }
+    end
+
+    def build_importer(model_name, mapping)
+      Importer.new(model_name, mapping, **duplicate_options)
+    end
+
+    def duplicate_options
+      key = params[:duplicate_key].presence
+      return { duplicate_key: nil, duplicate_strategy: nil } if key.blank?
+
+      {
+        duplicate_key: key,
+        duplicate_strategy: params[:duplicate_strategy]
+      }
+    end
+
+    def progress_attrs_from_result(result, mapping:)
+      {
+        mapping: mapping,
+        processed_rows: result.total_rows,
+        success_count: result.success_count,
+        failure_count: result.failure_count,
+        skipped_count: result.skipped_count,
+        updated_count: result.updated_count,
+        rows: ImportResultPresenter.serialize_rows(result),
+        **duplicate_options
       }
     end
 

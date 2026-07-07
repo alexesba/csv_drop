@@ -23,6 +23,10 @@
 #   # config.async_row_threshold = 50
 #   # config.progress_broadcast_every = 10
 #
+#   # Duplicate detection (per model) — also auto-detects single-column unique indexes
+#   # config.duplicate_keys = { "User" => %w[email] }
+#   # config.default_duplicate_strategy = :skip  # :skip, :update, or :fail
+#
 #   # Storage backends (:auto picks Redis + Active Storage in production)
 #   # config.session_store = :auto
 #   # config.progress_store = :auto

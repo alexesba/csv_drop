@@ -15,6 +15,7 @@ CsvDrop.configure do |config|
   config.session_store = :file
   config.progress_store = :file
   config.file_store = :disk
+  config.duplicate_keys = { "Contact" => %w[email] }
 end
 
 module ActiveSupport

@@ -171,4 +171,39 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
     assert_match "Import Complete", response.body
     refute_match "no records were saved", response.body
   end
+
+  test "import skips duplicate rows when configured" do
+    Contact.create!(name: "Alice Existing", email: "alice@example.com", role: "admin")
+    file = fixture_file_upload("contacts.csv", "text/csv")
+
+    post "/csv_drop/imports/preview",
+      params: { csv_file: file, model_name: "Contact" },
+      as: :multipart
+
+    follow_redirect!
+
+    token = response.body[/name="token"[^>]*value="([^"]+)"/, 1] ||
+            response.body[/value="([^"]+)"[^>]*name="token"/, 1]
+
+    assert_match "Duplicate records", response.body
+    assert_match 'name="duplicate_key"', response.body
+
+    assert_difference "Contact.count", 1 do
+      post "/csv_drop/imports", params: {
+        token: token,
+        duplicate_key: "email",
+        duplicate_strategy: "skip",
+        mapping: {
+          "name" => "name",
+          "email" => "email",
+          "role" => "role"
+        }
+      }
+    end
+
+    follow_redirect!
+    assert_match "Skipped", response.body
+    assert_equal "admin", Contact.find_by!(email: "alice@example.com").role
+    assert_equal "user", Contact.find_by!(email: "bob@example.com").role
+  end
 end

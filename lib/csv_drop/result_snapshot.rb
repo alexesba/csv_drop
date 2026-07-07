@@ -5,5 +5,17 @@ module CsvDrop
     def success?
       failure_count.zero?
     end
+
+    def imported_count
+      rows.count { |row| row.status == :imported }
+    end
+
+    def updated_count
+      rows.count { |row| row.status == :updated }
+    end
+
+    def skipped_count
+      rows.count { |row| row.status == :skipped }
+    end
   end
 end

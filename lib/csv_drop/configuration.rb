@@ -4,8 +4,8 @@ module CsvDrop
   class Configuration
     attr_accessor :importable_models, :excluded_models, :excluded_columns, :max_rows, :batch_size,
                   :mount_path, :async_imports, :async_row_threshold, :progress_broadcast_every,
-                  :results_per_page, :session_store, :progress_store, :file_store, :redis, :session_ttl,
-                  :progress_ttl
+                  :results_per_page, :duplicate_keys, :default_duplicate_strategy, :session_store,
+                  :progress_store, :file_store, :redis, :session_ttl, :progress_ttl
 
     def initialize
       @importable_models = nil # nil = auto-discover all ActiveRecord models
@@ -18,6 +18,8 @@ module CsvDrop
       @async_row_threshold = 50
       @progress_broadcast_every = 10
       @results_per_page = 50
+      @duplicate_keys = {}
+      @default_duplicate_strategy = :skip
       @session_store = :auto
       @progress_store = :auto
       @file_store = :auto
@@ -28,6 +30,12 @@ module CsvDrop
 
     def async_import?(row_count)
       async_imports && row_count >= async_row_threshold
+    end
+
+    def duplicate_keys_for(model)
+      name = model.is_a?(Class) ? model.name : model.to_s
+      keys = duplicate_keys[name] || duplicate_keys[name.to_sym]
+      Array(keys).map(&:to_s)
     end
 
     def resolve_importable_models

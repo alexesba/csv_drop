@@ -11,10 +11,36 @@
     <% end %>
 
     <div class="stats">
-      <div>
-        <div class="stat-value" style="color: var(--success);"><%= result.success_count %></div>
-        <div class="stat-label"><%= dry_run ? "Valid" : "Imported" %></div>
-      </div>
+      <% if duplicate_key.present? %>
+        <% unless dry_run %>
+          <div>
+            <div class="stat-value" style="color: var(--success);"><%= result.imported_count %></div>
+            <div class="stat-label">Imported</div>
+          </div>
+          <% if result.updated_count.positive? %>
+            <div>
+              <div class="stat-value" style="color: var(--primary);"><%= result.updated_count %></div>
+              <div class="stat-label">Updated</div>
+            </div>
+          <% end %>
+        <% else %>
+          <div>
+            <div class="stat-value" style="color: var(--success);"><%= result.success_count %></div>
+            <div class="stat-label">Valid</div>
+          </div>
+        <% end %>
+        <% if result.skipped_count.positive? %>
+          <div>
+            <div class="stat-value" style="color: var(--muted);"><%= result.skipped_count %></div>
+            <div class="stat-label">Skipped</div>
+          </div>
+        <% end %>
+      <% else %>
+        <div>
+          <div class="stat-value" style="color: var(--success);"><%= result.success_count %></div>
+          <div class="stat-label"><%= dry_run ? "Valid" : "Imported" %></div>
+        </div>
+      <% end %>
       <div>
         <div class="stat-value" style="color: var(--error);"><%= result.failure_count %></div>
         <div class="stat-label">Failed</div>
@@ -31,6 +57,10 @@
           <%= hidden_field_tag :token, session_token %>
           <% mapping.each do |column, attribute| %>
             <%= hidden_field_tag "mapping[#{column}]", attribute %>
+          <% end %>
+          <% if duplicate_key.present? %>
+            <%= hidden_field_tag :duplicate_key, duplicate_key %>
+            <%= hidden_field_tag :duplicate_strategy, local_assigns[:duplicate_strategy] %>
           <% end %>
           <%= submit_tag "Import #{result.total_rows} Rows", class: "btn" %>
         <% end %>

@@ -59,6 +59,31 @@
       </div>
     <% end %>
 
+    <% if @duplicate_key_options.any? %>
+      <div class="duplicate-options">
+        <h3>Duplicate records</h3>
+        <p>Match existing rows by a unique column, then choose what to do when a duplicate is found.</p>
+
+        <div class="field">
+          <label for="duplicate_key">Match on</label>
+          <%= select_tag :duplicate_key,
+                options_for_select([["— No duplicate detection —", ""]] + @duplicate_key_options.map { |key| [key, key] }),
+                id: "duplicate_key" %>
+        </div>
+
+        <div class="field">
+          <label for="duplicate_strategy">When duplicate found</label>
+          <%= select_tag :duplicate_strategy,
+                options_for_select([
+                  ["Skip duplicate rows", "skip"],
+                  ["Update existing records", "update"],
+                  ["Fail duplicate rows", "fail"]
+                ], CsvDrop.config.default_duplicate_strategy),
+                id: "duplicate_strategy" %>
+        </div>
+      </div>
+    <% end %>
+
     <div class="actions">
       <%= submit_tag "Import #{@row_count} Rows", class: "btn" %>
       <%= button_tag "Preview Import",

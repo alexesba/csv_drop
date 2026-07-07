@@ -59,6 +59,10 @@ module CsvDrop
       end
     end
 
+    def mapped_attributes
+      @mapping.values.reject { |v| v.nil? || v == SKIP || v.to_s.empty? }.map(&:to_s)
+    end
+
     def row_values(csv_row)
       mapped_csv_headers.each_with_object({}) do |header, values|
         values[header] = csv_row[header.to_sym] || csv_row[header.to_s]

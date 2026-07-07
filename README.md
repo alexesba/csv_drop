@@ -167,7 +167,7 @@ result.errors         # => per-row validation failures
 - [x] **Pluggable storage backends** — Redis + Active Storage for Heroku/multi-dyno deploys
 - [ ] Multi-model imports (associations)
 - [ ] **`insert_all` fast path (deferred)** — optional bulk insert after row-by-row validation; async jobs already cover typical large imports — only worth it for very high volume where job runtime becomes a bottleneck (skips callbacks; not a replacement for per-row validation UX)
-- [ ] Duplicate detection / upsert
+- [x] Duplicate detection / upsert — match on a unique column; skip, update, or fail duplicates
 - [ ] **Customizable UI** — extract inline CSS/JS into gem assets (vanilla ES modules + `data-*` hooks) so host apps can override views/styles without forking behavior
 
 ### Import results table
