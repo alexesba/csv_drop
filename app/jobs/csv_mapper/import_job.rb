@@ -1,14 +1,19 @@
 # frozen_string_literal: true
 
+require "stringio"
+
 module CsvMapper
   class ImportJob < ApplicationJob
     queue_as :default
 
-    def perform(import_id:, csv_path:, model_name:, mapping:, session_token:)
+    def perform(import_id:, file_ref:, model_name:, mapping:, session_token:)
       progress = ImportProgressStore.update(import_id, status: "running")
       ImportBroadcaster.broadcast_progress(import_id, import: progress)
 
-      parsed = Parser.parse(File.open(csv_path))
+      io = CsvMapper.config.file_store_adapter.open(file_ref)
+      io = StringIO.new(io) unless io.respond_to?(:rewind)
+
+      parsed = Parser.parse(io)
       importer = Importer.new(model_name, mapping)
       broadcast_every = CsvMapper.config.progress_broadcast_every
 

@@ -37,7 +37,11 @@ module CsvMapper
     end
 
     def import_from_file(path)
-      parsed = Parser.parse(File.open(path))
+      import_from_io(File.open(path))
+    end
+
+    def import_from_io(io)
+      parsed = Parser.parse(io)
       import(parsed.rows)
     end
 

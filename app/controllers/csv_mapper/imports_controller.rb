@@ -39,7 +39,7 @@ module CsvMapper
       end
 
       inspector = ModelInspector.new(session[:model_name])
-      parsed = Parser.parse(File.open(session[:csv_path]))
+      parsed = Parser.parse(SessionStore.open_csv(session))
 
       @token = params[:token]
       @model_name = session[:model_name]
@@ -102,7 +102,7 @@ module CsvMapper
 
       ImportJob.perform_later(
         import_id: import_id,
-        csv_path: session[:csv_path],
+        file_ref: session[:file_ref],
         model_name: session[:model_name],
         mapping: mapping,
         session_token: params[:token]
@@ -113,7 +113,7 @@ module CsvMapper
 
     def run_sync_import(session, mapping)
       importer = Importer.new(session[:model_name], mapping)
-      result = importer.import_from_file(session[:csv_path])
+      result = importer.import_from_io(SessionStore.open_csv(session))
 
       SessionStore.destroy(params[:token])
 

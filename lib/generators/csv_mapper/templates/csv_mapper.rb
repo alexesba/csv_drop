@@ -22,4 +22,10 @@
 #   # config.async_imports = true
 #   # config.async_row_threshold = 50
 #   # config.progress_broadcast_every = 10
+#
+#   # Storage backends (:auto picks Redis + Active Storage in production)
+#   # config.session_store = :auto
+#   # config.progress_store = :auto
+#   # config.file_store = :auto
+#   # config.redis = -> { Redis.new(url: ENV["REDIS_URL"]) }
 # end

@@ -92,6 +92,52 @@ rails importmap:install
 rails turbo:install
 ```
 
+## Storage backends (Heroku / multi-dyno)
+
+By default, CsvMapper uses local disk under `/tmp` — fine for development and single-server deploys.
+
+For **Heroku**, **Render**, or any environment with ephemeral or per-dyno filesystems, configure shared storage:
+
+| Data | Default | Production |
+|------|---------|------------|
+| Uploaded CSV files | Disk (`/tmp`) | Active Storage (S3) |
+| Import sessions | Disk | Redis |
+| Import progress | Disk | Redis |
+
+### Auto-detect (recommended)
+
+Set `REDIS_URL` and configure Active Storage with S3. CsvMapper picks Redis + Active Storage automatically:
+
+```ruby
+# config/initializers/csv_mapper.rb
+CsvMapper.configure do |config|
+  config.session_store = :auto   # Redis when REDIS_URL is set, else disk
+  config.progress_store = :auto
+  config.file_store = :auto      # Active Storage when available, else disk
+end
+```
+
+Add the `redis` gem when using Redis backends:
+
+```bash
+bundle add redis
+```
+
+### Explicit configuration
+
+```ruby
+CsvMapper.configure do |config|
+  config.session_store = :redis
+  config.progress_store = :redis
+  config.file_store = :active_storage
+  config.redis = -> { Redis.new(url: ENV["REDIS_URL"]) }
+  config.session_ttl = 1.hour
+  config.progress_ttl = 24.hours
+end
+```
+
+Use `:file` and `:disk` to force local storage (default behavior).
+
 ## Programmatic API
 
 ```ruby
@@ -117,6 +163,7 @@ result.errors         # => per-row validation failures
 
 - [ ] **Dry run** — preview import results without saving
 - [x] **Turbo Frames + background jobs** — enqueue large imports, show progress, update UI on completion
+- [x] **Pluggable storage backends** — Redis + Active Storage for Heroku/multi-dyno deploys
 - [ ] Multi-model imports (associations)
 - [ ] `insert_all` batch mode for large files
 - [ ] Duplicate detection / upsert

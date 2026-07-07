@@ -1,68 +1,35 @@
 # frozen_string_literal: true
 
-require "securerandom"
-require "fileutils"
-require "json"
-require "pathname"
-
 module CsvMapper
   class ImportProgressStore
-    STATUSES = %w[queued running completed failed].freeze
+    STATUSES = Stores::FileProgressStore::STATUSES
 
     class << self
       def create(model_name:, total_rows:, mapping:, **attrs)
-        id = SecureRandom.urlsafe_base64(16)
-        write(id, {
-          id: id,
-          status: attrs.fetch(:status, "queued"),
+        adapter.create(
           model_name: model_name,
           total_rows: total_rows,
-          processed_rows: attrs.fetch(:processed_rows, 0),
-          success_count: attrs.fetch(:success_count, 0),
-          failure_count: attrs.fetch(:failure_count, 0),
           mapping: mapping,
-          errors: attrs.fetch(:errors, []),
-          error_message: attrs.fetch(:error_message, nil),
-          created_at: Time.now.to_i,
-          updated_at: Time.now.to_i
-        })
-        id
+          **attrs
+        )
       end
 
       def fetch(id)
-        path = progress_path(id)
-        return nil unless path.exist?
-
-        JSON.parse(File.read(path), symbolize_names: true)
+        adapter.fetch(id)
       end
 
       def update(id, attrs)
-        progress = fetch(id)
-        return nil unless progress
-
-        progress.merge!(attrs)
-        progress[:updated_at] = Time.now.to_i
-        write(id, progress)
-        progress
+        adapter.update(id, attrs)
       end
 
       def destroy(id)
-        FileUtils.rm_f(progress_path(id))
+        adapter.destroy(id)
       end
 
       private
 
-      def progress_dir
-        Pathname.new(Dir.tmpdir).join("csv_mapper", "imports")
-      end
-
-      def progress_path(id)
-        progress_dir.join("#{id}.json")
-      end
-
-      def write(id, data)
-        FileUtils.mkdir_p(progress_dir)
-        File.write(progress_path(id).to_s, data.to_json)
+      def adapter
+        CsvMapper.config.progress_store_adapter
       end
     end
   end

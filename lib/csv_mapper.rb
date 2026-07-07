@@ -8,6 +8,12 @@ require "csv_mapper/model_inspector"
 require "csv_mapper/mapper"
 require "csv_mapper/result"
 require "csv_mapper/importer"
+require "csv_mapper/stores/disk_file_store"
+require "csv_mapper/stores/active_storage_file_store"
+require "csv_mapper/stores/file_session_store"
+require "csv_mapper/stores/redis_session_store"
+require "csv_mapper/stores/file_progress_store"
+require "csv_mapper/stores/redis_progress_store"
 require "csv_mapper/session_store"
 require "csv_mapper/import_progress_store"
 require "csv_mapper/import_broadcaster"
@@ -19,10 +25,15 @@ module CsvMapper
   class << self
     def configure
       yield config
+      config.reset_store_adapters!
     end
 
     def config
       @config ||= Configuration.new
+    end
+
+    def reset_config!
+      @config = nil
     end
   end
 end

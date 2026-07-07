@@ -28,4 +28,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "activerecord", ">= 7.0"
   spec.add_dependency "activejob", ">= 7.0"
   spec.add_dependency "turbo-rails", ">= 2.0"
+
+  spec.add_development_dependency "redis", ">= 4.0"
 end
