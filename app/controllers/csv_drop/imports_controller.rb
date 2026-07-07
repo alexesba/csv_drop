@@ -59,7 +59,12 @@ module CsvDrop
         return
       end
 
-      mapping = params.fetch(:mapping, {}).to_unsafe_h
+      inspector = ModelInspector.new(session[:model_name])
+      mapping = Mapper.resolve_mapping(
+        params.fetch(:mapping, {}).to_unsafe_h,
+        session[:headers],
+        inspector.columns_for_select
+      )
 
       if CsvDrop.config.async_import?(session[:row_count])
         enqueue_async_import(session, mapping)

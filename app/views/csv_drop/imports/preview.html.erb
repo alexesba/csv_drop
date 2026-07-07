@@ -50,7 +50,8 @@
                     label = c[:name]
                     label += " (required)" if c[:required]
                     [label, c[:name]]
-                  }
+                  },
+                  CsvDrop::Mapper.auto_detect_attribute(header, @model_columns)
                 ),
                 include_blank: "Auto-detect…" %>
         </div>
@@ -63,22 +64,3 @@
     </div>
   <% end %>
 </div>
-
-<script>
-  // Auto-detect: match CSV headers to model columns (case-insensitive, underscore-normalized)
-  document.addEventListener("DOMContentLoaded", () => {
-    const modelColumns = <%= @model_columns.map { |c| c[:name] }.to_json.html_safe %>;
-
-    function normalize(str) {
-      return str.toLowerCase().replace(/[\s-]+/g, "_");
-    }
-
-    document.querySelectorAll("select[name^='mapping']").forEach((select) => {
-      const csvHeader = select.name.match(/mapping\[(.+)\]/)[1];
-      const normalized = normalize(csvHeader);
-
-      const match = modelColumns.find((col) => normalize(col) === normalized);
-      if (match) select.value = match;
-    });
-  });
-</script>

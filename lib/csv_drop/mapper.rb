@@ -4,6 +4,24 @@ module CsvDrop
   class Mapper
     SKIP = "_skip"
 
+    def self.normalize_header(header)
+      header.to_s.downcase.gsub(/[\s-]+/, "_")
+    end
+
+    def self.auto_detect_attribute(csv_header, model_columns)
+      normalized = normalize_header(csv_header)
+      match = model_columns.find { |column| normalize_header(column[:name]) == normalized }
+      match&.dig(:name)
+    end
+
+    def self.resolve_mapping(raw_mapping, headers, model_columns)
+      headers.each_with_object({}) do |header, result|
+        header = header.to_s
+        value = raw_mapping[header] || raw_mapping[header.to_sym]
+        result[header] = value.presence || auto_detect_attribute(header, model_columns) || SKIP
+      end
+    end
+
     # mapping: { csv_column: model_attribute_or_skip }
     def initialize(model_class, mapping)
       @model_class = model_class.is_a?(String) ? model_class.constantize : model_class
