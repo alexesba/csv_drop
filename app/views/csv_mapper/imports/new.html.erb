@@ -1,0 +1,29 @@
+<% content_for :title, "New Import" %>
+
+<div class="card">
+  <h1>Import CSV</h1>
+  <p>Upload a CSV file and choose which model to populate.</p>
+
+  <%= form_with url: preview_imports_path, method: :post, multipart: true, local: true do |f| %>
+    <div class="field">
+      <%= label_tag :csv_file, "CSV File" %>
+      <%= file_field_tag :csv_file, accept: ".csv,text/csv", required: true %>
+    </div>
+
+    <div class="field">
+      <%= label_tag :model_name, "Target Model" %>
+      <% if @importable_models.any? %>
+        <%= select_tag :model_name,
+              options_for_select(@importable_models),
+              prompt: "Select a model…",
+              required: true %>
+      <% else %>
+        <p>No importable models found. Make sure your app has ActiveRecord models with database tables.</p>
+      <% end %>
+    </div>
+
+    <% if @importable_models.any? %>
+      <%= submit_tag "Continue to Field Mapping", class: "btn" %>
+    <% end %>
+  <% end %>
+</div>
