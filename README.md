@@ -161,6 +161,7 @@ result.errors         # => per-row validation failures
 
 ## Roadmap
 
+- [ ] **Import results table** — paginated row-level results with mapped columns and inline errors (see below)
 - [ ] **Dry run** — preview import results without saving
 - [x] **Turbo Frames + background jobs** — enqueue large imports, show progress, update UI on completion
 - [x] **Pluggable storage backends** — Redis + Active Storage for Heroku/multi-dyno deploys
@@ -168,6 +169,19 @@ result.errors         # => per-row validation failures
 - [ ] `insert_all` batch mode for large files
 - [ ] Duplicate detection / upsert
 - [ ] **Customizable UI** — extract inline CSS/JS into gem assets (vanilla ES modules + `data-*` hooks) so host apps can override views/styles without forking behavior
+
+### Import results table (planned)
+
+Inspired by [data_porter](https://github.com/SerylLns/data_porter): show a **paginated table on the results page**, not a live-growing table streamed row-by-row during import. While importing, keep the progress bar and counts; when complete, show per-row outcomes using the **mapped columns** the user selected, with validation errors inline.
+
+| Phase | Scope |
+|-------|--------|
+| **1 — Results table** | On import complete: table with row #, mapped columns, status, and errors column; server-side pagination (50 rows/page via `?page=N`) |
+| **2 — Dry run / preview** | Same table UI before import — validate rows without saving (pairs with dry run roadmap item) |
+| **3 — Export rejects** | Download failed rows as CSV |
+| **4 — Live failures (optional)** | During async import, append failed rows to the table in real time; successes stay as counts only |
+
+Row storage will live in `ImportProgressStore` (or a dedicated store) so results work across dynos when Redis is configured.
 
 ## Testing
 
