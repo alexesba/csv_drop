@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name = "csv_drop"
   spec.version = CsvDrop::VERSION
   spec.authors = ["Alejandro Espinoza"]
-  spec.email = ["alejandro.espinoza@fabrichealth.com"]
+  spec.email = ["alexesba@gmail.com"]
 
   spec.summary = "Zero-config CSV import for Rails with column mapping UI"
   spec.description = <<~DESC.delete("\n")
