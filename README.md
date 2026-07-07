@@ -167,6 +167,7 @@ result.errors         # => per-row validation failures
 - [ ] Multi-model imports (associations)
 - [ ] `insert_all` batch mode for large files
 - [ ] Duplicate detection / upsert
+- [ ] **Customizable UI** — extract inline CSS/JS into gem assets (vanilla ES modules + `data-*` hooks) so host apps can override views/styles without forking behavior
 
 ## Testing
 
