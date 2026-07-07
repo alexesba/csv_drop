@@ -135,7 +135,14 @@ Start the demo app:
 ./bin/demo
 ```
 
-Then open http://localhost:3000/csv_import and upload `test/fixtures/files/contacts.csv` into the **Contact** model.
+Then open http://localhost:3000/csv_import:
+
+| File | Rows | Behavior |
+|------|------|----------|
+| `test/fixtures/files/contacts.csv` | 2 | Sync import (instant results) |
+| `test/fixtures/files/contacts_large.csv` | 55 | Async import (Turbo progress UI) |
+
+Upload into the **Contact** model and map `name`, `email`, `role`.
 
 ## Development
 

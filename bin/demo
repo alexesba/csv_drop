@@ -8,7 +8,10 @@ bundle exec rails db:prepare
 
 echo ""
 echo "Starting demo app at http://localhost:3000/csv_import"
-echo "Try uploading test/fixtures/files/contacts.csv into the Contact model."
+echo ""
+echo "Fixtures (from repo root test/fixtures/files/):"
+echo "  contacts.csv       — 2 rows (sync import)"
+echo "  contacts_large.csv — 55 rows (async import with Turbo progress)"
 echo ""
 
 bundle exec rails server
