@@ -3,6 +3,15 @@
 require "test_helper"
 
 class ImportHistoryTest < ActiveSupport::TestCase
+  setup do
+    @original_history_limit = CsvDrop.config.history_limit
+    CsvDrop.config.history_limit = 10_000
+  end
+
+  teardown do
+    CsvDrop.config.history_limit = @original_history_limit
+  end
+
   test "entries returns recent imports newest first" do
     older_id = CsvDrop::ImportProgressStore.create(
       model_name: "Contact",
@@ -11,7 +20,8 @@ class ImportHistoryTest < ActiveSupport::TestCase
       status: "completed",
       success_count: 1
     )
-    CsvDrop::ImportProgressStore.update(older_id, created_at: 1.hour.ago.to_i)
+    now = Time.now.to_i
+    CsvDrop::ImportProgressStore.update(older_id, created_at: now - 60)
 
     newer_id = CsvDrop::ImportProgressStore.create(
       model_name: "Contact",
@@ -20,7 +30,7 @@ class ImportHistoryTest < ActiveSupport::TestCase
       status: "completed",
       success_count: 2
     )
-    CsvDrop::ImportProgressStore.update(newer_id, created_at: Time.now.to_i)
+    CsvDrop::ImportProgressStore.update(newer_id, created_at: now)
 
     entries = CsvDrop::ImportHistory.entries
     relevant = entries.select { |entry| [older_id, newer_id].include?(entry.id) }

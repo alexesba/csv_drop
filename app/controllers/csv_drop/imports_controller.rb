@@ -120,7 +120,7 @@ module CsvDrop
     def assign_result_variables
       @result = ImportResultPresenter.snapshot_from_progress(@import)
       @model_name = @import[:model_name]
-      @import_results = ImportResults.new(rows: @result.rows, page: params[:page])
+      @import_results = build_import_results(@result.rows)
       @dry_run = @import[:dry_run]
       @session_token = @import[:session_token]
       @mapping = @import[:mapping]
@@ -132,13 +132,22 @@ module CsvDrop
         result: result,
         model_name: @import[:model_name],
         import_id: @import_id,
-        import_results: ImportResults.new(rows: result.rows, page: params[:page]),
+        import_results: build_import_results(result.rows),
         dry_run: @import[:dry_run],
         session_token: @import[:session_token],
         mapping: @import[:mapping],
         duplicate_key: @import[:duplicate_key],
         duplicate_strategy: @import[:duplicate_strategy]
       }
+    end
+
+    def build_import_results(rows)
+      ImportResults.new(
+        rows: rows,
+        page: params[:page],
+        status: params[:status],
+        query: params[:q]
+      )
     end
 
     def render_status_frame

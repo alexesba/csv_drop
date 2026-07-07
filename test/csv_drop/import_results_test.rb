@@ -62,4 +62,70 @@ class ImportResultsTest < ActiveSupport::TestCase
 
     assert_equal [1, :gap, 7, 8, 9, 10], results.page_sequence
   end
+
+  test "filters rows by status" do
+    rows = [
+      row(status: :imported, name: "Alice"),
+      row(status: :failed, name: "Bob", messages: ["Invalid"])
+    ]
+
+    results = CsvDrop::ImportResults.new(rows: rows, status: "failed")
+
+    assert_equal 1, results.total_count
+    assert_equal :failed, results.items.first.status
+    assert results.filtered?
+  end
+
+  test "imported status filter includes valid rows" do
+    rows = [
+      row(status: :valid, name: "Alice"),
+      row(status: :failed, name: "Bob", messages: ["Invalid"])
+    ]
+
+    results = CsvDrop::ImportResults.new(rows: rows, status: "imported")
+
+    assert_equal 1, results.total_count
+    assert_equal :valid, results.items.first.status
+  end
+
+  test "searches row numbers, values, and error messages" do
+    rows = [
+      row(status: :imported, name: "Alice", row_number: 2),
+      row(status: :failed, name: "Bob", row_number: 3, messages: ["Email is invalid"])
+    ]
+
+    by_value = CsvDrop::ImportResults.new(rows: rows, query: "alice")
+    assert_equal 1, by_value.total_count
+
+    by_error = CsvDrop::ImportResults.new(rows: rows, query: "invalid")
+    assert_equal 1, by_error.total_count
+    assert_equal "Bob", by_error.items.first.values["name"]
+
+    by_row = CsvDrop::ImportResults.new(rows: rows, query: "2")
+    assert_equal 1, by_row.total_count
+    assert_equal 2, by_row.items.first.row_number
+  end
+
+  test "combines status filter and search" do
+    rows = [
+      row(status: :failed, name: "Alice", messages: ["Name blank"]),
+      row(status: :failed, name: "Bob", messages: ["Email blank"])
+    ]
+
+    results = CsvDrop::ImportResults.new(rows: rows, status: "failed", query: "bob")
+
+    assert_equal 1, results.total_count
+    assert_equal "Bob", results.items.first.values["name"]
+  end
+
+  private
+
+  def row(status:, name:, row_number: 2, messages: [])
+    RowResult.new(
+      row_number: row_number,
+      status: status,
+      values: { "name" => name },
+      messages: messages
+    )
+  end
 end

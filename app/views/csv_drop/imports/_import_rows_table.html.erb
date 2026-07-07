@@ -1,58 +1,103 @@
+<% result_params = { status: import_results.status_filter, q: import_results.query.presence }.compact %>
+
 <% if result.rows.any? %>
   <div class="card">
     <h2>Import Results</h2>
 
-    <div class="table-scroll">
-      <table class="results-table">
-        <thead>
-          <tr>
-            <th>Row</th>
-            <th>Status</th>
-            <% result.column_headers.each do |header| %>
-              <th><%= header %></th>
-            <% end %>
-            <th>Errors</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% import_results.items.each do |row| %>
-            <tr class="row-<%= row.status %>">
-              <td><%= row.row_number %></td>
-              <td>
-                <span class="status-badge status-<%= row.status %>">
-                  <% if row.status == :failed %>
-                    Failed
-                  <% elsif row.status == :skipped %>
-                    Skipped
-                  <% elsif row.status == :updated %>
-                    Updated
-                  <% elsif row.status == :valid %>
-                    Valid
-                  <% else %>
-                    Imported
-                  <% end %>
-                </span>
-              </td>
+    <%= form_with url: import_path(import_id), method: :get, class: "results-toolbar", data: { turbo_frame: "_top" } do %>
+      <div class="results-toolbar-field">
+        <%= label_tag :status, "Status" %>
+        <%= select_tag :status,
+              options_for_select(
+                [
+                  ["All", ""],
+                  ["Failed", "failed"],
+                  ["Skipped", "skipped"],
+                  [dry_run ? "Valid" : "Imported", "imported"],
+                  ["Updated", "updated"]
+                ],
+                import_results.status_filter
+              ),
+              id: :status,
+              class: "results-filter-select",
+              onchange: "this.form.requestSubmit()" %>
+      </div>
+
+      <div class="results-toolbar-field results-toolbar-search">
+        <%= label_tag :q, "Search" %>
+        <%= search_field_tag :q,
+              import_results.query,
+              placeholder: "Row, column value, or error…",
+              id: :q,
+              class: "results-search-input" %>
+      </div>
+
+      <div class="results-toolbar-actions">
+        <%= submit_tag "Apply", class: "btn btn-secondary btn-sm" %>
+        <% if import_results.filtered? %>
+          <%= link_to "Clear",
+            import_path(import_id),
+            class: "btn btn-secondary btn-sm",
+            data: { turbo_frame: "_top" } %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if import_results.filtered? && import_results.total_count.zero? %>
+      <p class="empty-state">No rows match the current filters.</p>
+    <% else %>
+      <div class="table-scroll">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Row</th>
+              <th>Status</th>
               <% result.column_headers.each do |header| %>
-                <td><%= row.values[header] %></td>
+                <th><%= header %></th>
               <% end %>
-              <td class="error-cell">
-                <% if row.messages.any? %>
-                  <%= row.messages.join(", ") %>
-                <% end %>
-              </td>
+              <th>Errors</th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            <% import_results.items.each do |row| %>
+              <tr class="row-<%= row.status %>">
+                <td><%= row.row_number %></td>
+                <td>
+                  <span class="status-badge status-<%= row.status %>">
+                    <% if row.status == :failed %>
+                      Failed
+                    <% elsif row.status == :skipped %>
+                      Skipped
+                    <% elsif row.status == :updated %>
+                      Updated
+                    <% elsif row.status == :valid %>
+                      Valid
+                    <% else %>
+                      Imported
+                    <% end %>
+                  </span>
+                </td>
+                <% result.column_headers.each do |header| %>
+                  <td><%= row.values[header] %></td>
+                <% end %>
+                <td class="error-cell">
+                  <% if row.messages.any? %>
+                    <%= row.messages.join(", ") %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
 
     <% if import_results.total_pages > 1 %>
       <nav class="pagination" aria-label="Import results pages">
         <div class="pagination-pages" role="group" aria-label="Page numbers">
           <% unless import_results.first_page? %>
             <%= link_to "Previous",
-              import_path(import_id, page: import_results.current_page - 1),
+              import_path(import_id, result_params.merge(page: import_results.current_page - 1)),
               class: "pagination-link",
               data: { turbo_frame: "_top" },
               aria: { label: "Previous page" } %>
@@ -65,7 +110,7 @@
               <span class="pagination-link is-active" aria-current="page"><%= entry %></span>
             <% else %>
               <%= link_to entry,
-                import_path(import_id, page: entry),
+                import_path(import_id, result_params.merge(page: entry)),
                 class: "pagination-link",
                 data: { turbo_frame: "_top" },
                 aria: { label: "Page #{entry}" } %>
@@ -74,7 +119,7 @@
 
           <% unless import_results.last_page? %>
             <%= link_to "Next",
-              import_path(import_id, page: import_results.current_page + 1),
+              import_path(import_id, result_params.merge(page: import_results.current_page + 1)),
               class: "pagination-link",
               data: { turbo_frame: "_top" },
               aria: { label: "Next page" } %>
@@ -82,9 +127,17 @@
         </div>
 
         <span class="pagination-info">
-          <%= import_results.total_count %> rows
+          <% if import_results.filtered? %>
+            <%= import_results.total_count %> of <%= import_results.unfiltered_count %> rows
+          <% else %>
+            <%= import_results.total_count %> rows
+          <% end %>
         </span>
       </nav>
+    <% elsif import_results.filtered? %>
+      <span class="pagination-info">
+        <%= import_results.total_count %> of <%= import_results.unfiltered_count %> rows
+      </span>
     <% end %>
   </div>
 <% end %>

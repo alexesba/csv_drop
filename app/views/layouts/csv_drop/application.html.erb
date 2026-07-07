@@ -428,6 +428,43 @@
       .empty-state {
         margin: 1rem 0;
       }
+
+      .results-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+        align-items: flex-end;
+        margin-bottom: 1rem;
+      }
+
+      .results-toolbar-field {
+        flex: 0 1 auto;
+      }
+
+      .results-toolbar-field label {
+        margin-bottom: 0.25rem;
+      }
+
+      .results-toolbar-search {
+        flex: 1 1 12rem;
+        min-width: 12rem;
+      }
+
+      .results-filter-select,
+      .results-search-input {
+        width: 100%;
+        padding: 0.5rem 0.625rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 0.875rem;
+        background: var(--surface);
+      }
+
+      .results-toolbar-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
     </style>
   </head>
   <body>

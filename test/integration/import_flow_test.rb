@@ -76,6 +76,18 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
     assert_match "be blank", response.body
     assert_match "alice@example.com", response.body
     assert_match "Bob", response.body
+
+    import_id = response.request.path[%r{/imports/([^/]+)\z}, 1]
+
+    get "/csv_drop/imports/#{import_id}", params: { status: "failed" }
+    assert_response :success
+    assert_match "alice@example.com", response.body
+    assert_no_match "bob@example.com", response.body
+
+    get "/csv_drop/imports/#{import_id}", params: { q: "blank" }
+    assert_response :success
+    assert_match "alice@example.com", response.body
+    assert_match "can&#39;t be blank", response.body
   end
 
   test "importer reports validation errors for invalid rows" do
