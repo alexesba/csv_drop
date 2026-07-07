@@ -235,8 +235,8 @@ PLATFORMS
 DEPENDENCIES
   csv_drop!
   irb
-  minitest (~> 5.0)
-  rake (~> 13.0)
+  minitest (~> 5.0, >= 5.0)
+  rake (~> 13.0, >= 13.0)
   redis (>= 4.0)
 
 CHECKSUMS
