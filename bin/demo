@@ -1,14 +1,52 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+Usage: bin/demo [OPTIONS]
+
+Start the CsvDrop demo app at http://localhost:3000/csv_drop
+
+Options:
+  --reset, -r    Drop and recreate the database before starting (empty Contact table)
+  --help, -h     Show this help
+EOF
+}
+
 cd "$(dirname "$0")/../test/dummy"
 
+reset_db=0
+
+for arg in "$@"; do
+  case "$arg" in
+    --reset|-r)
+      reset_db=1
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $arg" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
 bundle check >/dev/null 2>&1 || bundle install
-bundle exec rails db:reset
+
+if [[ "$reset_db" -eq 1 ]]; then
+  bundle exec rails db:reset
+else
+  bundle exec rails db:prepare
+fi
 
 echo ""
 echo "Starting demo app at http://localhost:3000/csv_drop"
-echo "(database reset — Contact table is empty)"
+if [[ "$reset_db" -eq 1 ]]; then
+  echo "(database reset — Contact table is empty)"
+fi
 echo ""
 echo "Fixtures (from repo root test/fixtures/files/):"
 echo "  contacts.csv       — 2 rows (sync import)"

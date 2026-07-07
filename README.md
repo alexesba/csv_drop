@@ -209,6 +209,12 @@ Start the demo app:
 ./bin/demo
 ```
 
+Pass `--reset` to drop and recreate the database first (empty `Contact` table):
+
+```bash
+./bin/demo --reset
+```
+
 Then open http://localhost:3000/csv_drop:
 
 | File | Rows | Behavior |
