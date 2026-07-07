@@ -219,6 +219,86 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
     assert_equal "user", Contact.find_by!(email: "bob@example.com").role
   end
 
+  test "contacts_duplicates csv skips duplicates with skip strategy" do
+    Contact.create!(name: "Alice", email: "alice@example.com", role: "admin")
+    file = fixture_file_upload("contacts_duplicates.csv", "text/csv")
+
+    post "/csv_drop/imports/preview",
+      params: { csv_file: file, model_name: "Contact" },
+      as: :multipart
+
+    follow_redirect!
+
+    token = response.body[/name="token"[^>]*value="([^"]+)"/, 1] ||
+            response.body[/value="([^"]+)"[^>]*name="token"/, 1]
+
+    assert_difference "Contact.count", 4 do
+      post "/csv_drop/imports", params: {
+        token: token,
+        duplicate_key: "email",
+        duplicate_strategy: "skip",
+        mapping: {
+          "name" => "name",
+          "email" => "email",
+          "role" => "role"
+        }
+      }
+    end
+
+    follow_redirect!
+    import_id = response.request.path[%r{/imports/([^/]+)\z}, 1]
+    progress = CsvDrop::ImportProgressStore.fetch(import_id)
+
+    assert_equal 0, progress[:failure_count]
+    assert_equal 3, progress[:skipped_count]
+    assert_match "Skipped", response.body
+    assert_equal "admin", Contact.find_by!(email: "alice@example.com").role
+  end
+
+  test "dry run confirm keeps skip duplicate strategy" do
+    Contact.create!(name: "Alice Existing", email: "alice@example.com", role: "admin")
+    file = fixture_file_upload("contacts.csv", "text/csv")
+
+    post "/csv_drop/imports/preview",
+      params: { csv_file: file, model_name: "Contact" },
+      as: :multipart
+
+    follow_redirect!
+
+    token = response.body[/name="token"[^>]*value="([^"]+)"/, 1] ||
+            response.body[/value="([^"]+)"[^>]*name="token"/, 1]
+
+    post "/csv_drop/imports/dry_run", params: {
+      token: token,
+      duplicate_key: "email",
+      duplicate_strategy: "skip",
+      mapping: {
+        "name" => "name",
+        "email" => "email",
+        "role" => "role"
+      }
+    }
+
+    follow_redirect!
+
+    assert_difference "Contact.count", 1 do
+      post "/csv_drop/imports", params: {
+        token: token,
+        duplicate_key: "email",
+        duplicate_strategy: "skip",
+        mapping: {
+          "name" => "name",
+          "email" => "email",
+          "role" => "role"
+        }
+      }
+    end
+
+    follow_redirect!
+    assert_match "Skipped", response.body
+    assert_equal "admin", Contact.find_by!(email: "alice@example.com").role
+  end
+
   test "import history lists completed imports" do
     file = fixture_file_upload("contacts.csv", "text/csv")
 

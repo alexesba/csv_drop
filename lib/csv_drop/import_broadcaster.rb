@@ -17,7 +17,7 @@ module CsvDrop
         )
       end
 
-      def broadcast_result(import_id, result:, model_name:)
+      def broadcast_result(import_id, result:, model_name:, duplicate_key: nil, duplicate_strategy: nil)
         import_results = ImportResults.new(rows: result.rows, page: 1)
 
         broadcast_replace(
@@ -31,8 +31,8 @@ module CsvDrop
             dry_run: false,
             session_token: nil,
             mapping: {},
-            duplicate_key: nil,
-            duplicate_strategy: nil
+            duplicate_key: duplicate_key,
+            duplicate_strategy: duplicate_strategy
           }
         )
       end

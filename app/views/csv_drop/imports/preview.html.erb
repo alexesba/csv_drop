@@ -85,7 +85,7 @@
                   ["Skip duplicate rows", "skip"],
                   ["Update existing records", "update"],
                   ["Fail duplicate rows", "fail"]
-                ], @duplicate_strategy.presence || CsvDrop.config.default_duplicate_strategy),
+                ], (@duplicate_strategy.presence || CsvDrop.config.default_duplicate_strategy).to_s),
                 id: "duplicate_strategy" %>
         </div>
       </div>

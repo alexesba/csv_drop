@@ -80,7 +80,7 @@
                 <% result.column_headers.each do |header| %>
                   <td><%= row.values[header] %></td>
                 <% end %>
-                <td class="error-cell">
+                <td class="<%= row.status == :failed ? 'error-cell' : 'notes-cell' %>">
                   <% if row.messages.any? %>
                     <%= row.messages.join(", ") %>
                   <% end %>

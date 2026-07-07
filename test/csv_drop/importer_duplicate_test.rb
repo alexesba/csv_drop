@@ -59,4 +59,25 @@ class ImporterDuplicateTest < ActiveSupport::TestCase
     assert_equal 1, result.failure_count
     assert_includes result.errors.first.messages.join, "Duplicate"
   end
+
+  test "skip strategy skips within-file duplicate rows" do
+    rows = [
+      { name: "First", email: "shared@example.com", role: "user" },
+      { name: "Second", email: "shared@example.com", role: "admin" }
+    ]
+    mapping = { "name" => "name", "email" => "email", "role" => "role" }
+
+    assert_difference "Contact.count", 1 do
+      result = CsvDrop::Importer.new(
+        Contact,
+        mapping,
+        duplicate_key: "email",
+        duplicate_strategy: "skip"
+      ).import(rows)
+
+      assert_equal 1, result.imported_count
+      assert_equal 1, result.skipped_count
+      assert_equal 0, result.failure_count
+    end
+  end
 end

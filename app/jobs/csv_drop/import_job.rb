@@ -33,7 +33,7 @@ module CsvDrop
 
       snapshot = ImportResultPresenter.snapshot_from_result(result, mapping: mapping)
 
-      ImportProgressStore.update(
+      progress = ImportProgressStore.update(
         import_id,
         status: "completed",
         processed_rows: result.total_rows,
@@ -47,7 +47,9 @@ module CsvDrop
       ImportBroadcaster.broadcast_result(
         import_id,
         result: snapshot,
-        model_name: model_name
+        model_name: model_name,
+        duplicate_key: duplicate_key,
+        duplicate_strategy: duplicate_strategy
       )
     rescue Error => e
       progress = ImportProgressStore.update(import_id, status: "failed", error_message: e.message)

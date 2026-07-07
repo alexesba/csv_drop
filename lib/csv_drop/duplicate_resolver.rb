@@ -5,7 +5,9 @@ module CsvDrop
     STRATEGIES = %i[skip update fail].freeze
 
     def self.normalize_strategy(value)
-      strategy = value.to_s.presence&.to_sym || :skip
+      raw = Array(value).first if value.is_a?(Array)
+      raw ||= value
+      strategy = raw.to_s.strip.presence&.to_sym || :skip
       return strategy if STRATEGIES.include?(strategy)
 
       raise Error, "Invalid duplicate strategy: #{value}"

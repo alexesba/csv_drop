@@ -38,12 +38,14 @@ module CsvDrop
     end
 
     def self.duplicate_options_from(params)
-      key = params[:duplicate_key].presence
+      key = params[:duplicate_key].to_s.strip.presence
       return { duplicate_key: nil, duplicate_strategy: nil } if key.blank?
+
+      strategy = params[:duplicate_strategy].presence || CsvDrop.config.default_duplicate_strategy
 
       {
         duplicate_key: key,
-        duplicate_strategy: params[:duplicate_strategy]
+        duplicate_strategy: DuplicateResolver.normalize_strategy(strategy)
       }
     end
 

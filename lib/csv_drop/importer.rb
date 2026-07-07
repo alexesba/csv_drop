@@ -89,7 +89,9 @@ module CsvDrop
     end
 
     def handle_duplicate(result:, row_number:, display_values:, attributes:, existing:, persist:)
-      case @duplicate_strategy
+      strategy = DuplicateResolver.normalize_strategy(@duplicate_strategy)
+
+      case strategy
       when :skip
         result.add_row(
           row_number: row_number,
