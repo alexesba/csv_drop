@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+export BUNDLE_GEMFILE=test/dummy/Gemfile
+
+bundle check >/dev/null 2>&1 || bundle install
+bundle exec rails db:prepare -C test/dummy RAILS_ENV=test >/dev/null
+bundle exec rake test "$@"
