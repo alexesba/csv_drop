@@ -96,10 +96,32 @@ result.errors         # => per-row validation failures
 ## Roadmap
 
 - [ ] **Dry run** — preview import results without saving
+- [ ] **Turbo Frames + background jobs** — enqueue large imports, show progress, update UI on completion
 - [ ] Multi-model imports (associations)
 - [ ] `insert_all` batch mode for large files
 - [ ] Duplicate detection / upsert
-- [ ] Background job support (ActiveJob)
+
+## Testing
+
+### Automated tests
+
+A dummy Rails app lives in `test/dummy` with a `Contact` model. Run:
+
+```bash
+./bin/test
+```
+
+This runs unit tests (parser) and integration tests (full HTTP import flow).
+
+### Manual browser test
+
+Start the demo app:
+
+```bash
+./bin/demo
+```
+
+Then open http://localhost:3000/csv_import and upload `test/fixtures/files/contacts.csv` into the **Contact** model.
 
 ## Development
 
