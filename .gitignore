@@ -2,3 +2,8 @@
 /.bundle
 *.gem
 /pkg
+/test/dummy/log/*
+/test/dummy/tmp/*
+/test/dummy/storage/*
+/test/dummy/db/*.sqlite3
+/test/dummy/vendor/bundle
