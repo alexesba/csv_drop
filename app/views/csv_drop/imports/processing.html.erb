@@ -1,0 +1,17 @@
+<% content_for :title, "Importing" %>
+
+<% if @import[:status].in?(%w[queued running]) %>
+  <% content_for :head do %>
+    <meta http-equiv="refresh" content="2">
+  <% end %>
+<% end %>
+
+<div data-import-id="<%= @import_id %>">
+  <%= turbo_stream_from CsvDrop::ImportBroadcaster.stream_name(@import_id) %>
+
+  <%= render "progress", import: @import %>
+</div>
+
+<p style="font-size: 0.875rem; color: var(--muted); margin-top: 1rem;">
+  Large imports run in the background. This page updates automatically when finished.
+</p>

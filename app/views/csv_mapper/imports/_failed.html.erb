@@ -1,9 +1,0 @@
-<%= turbo_frame_tag CsvMapper::ImportBroadcaster::FRAME_ID do %>
-  <div class="card">
-    <h1>Import Failed</h1>
-    <p class="alert alert-error"><%= import[:error_message] %></p>
-    <div class="actions">
-      <%= link_to "Start Over", new_import_path, class: "btn", data: { turbo_frame: "_top" } %>
-    </div>
-  </div>
-<% end %>

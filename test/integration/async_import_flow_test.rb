@@ -4,18 +4,18 @@ require "test_helper"
 
 class AsyncImportFlowTest < ActionDispatch::IntegrationTest
   setup do
-    @original_threshold = CsvMapper.config.async_row_threshold
-    CsvMapper.config.async_row_threshold = 1
+    @original_threshold = CsvDrop.config.async_row_threshold
+    CsvDrop.config.async_row_threshold = 1
   end
 
   teardown do
-    CsvMapper.config.async_row_threshold = @original_threshold
+    CsvDrop.config.async_row_threshold = @original_threshold
   end
 
   test "async import runs in background and creates records" do
     file = fixture_file_upload("contacts.csv", "text/csv")
 
-    post "/csv_import/imports/preview",
+    post "/csv_drop/imports/preview",
       params: { csv_file: file, model_name: "Contact" },
       as: :multipart
 
@@ -26,7 +26,7 @@ class AsyncImportFlowTest < ActionDispatch::IntegrationTest
             response.body[/value="([^"]+)"[^>]*name="token"/, 1]
 
     assert_difference "Contact.count", 2 do
-      post "/csv_import/imports", params: {
+      post "/csv_drop/imports", params: {
         token: token,
         mapping: {
           "name" => "name",
@@ -42,7 +42,7 @@ class AsyncImportFlowTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_match "Import Complete", response.body
 
-    progress = CsvMapper::ImportProgressStore.fetch(import_id)
+    progress = CsvDrop::ImportProgressStore.fetch(import_id)
     assert_equal "completed", progress[:status]
     assert_equal 2, progress[:success_count]
   end

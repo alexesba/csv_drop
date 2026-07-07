@@ -4,7 +4,7 @@ require "test_helper"
 
 class ImportFlowTest < ActionDispatch::IntegrationTest
   test "import page lists auto-discovered models" do
-    get "/csv_import"
+    get "/csv_drop"
     assert_response :success
     assert_match "Contact", response.body
   end
@@ -12,7 +12,7 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
   test "full csv import flow creates records" do
     file = fixture_file_upload("contacts.csv", "text/csv")
 
-    post "/csv_import/imports/preview",
+    post "/csv_drop/imports/preview",
       params: { csv_file: file, model_name: "Contact" },
       as: :multipart
 
@@ -26,7 +26,7 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
     assert token, "expected import session token in preview response"
 
     assert_difference "Contact.count", 2 do
-      post "/csv_import/imports", params: {
+      post "/csv_drop/imports", params: {
         token: token,
         mapping: {
           "name" => "name",
@@ -51,7 +51,7 @@ class ImportFlowTest < ActionDispatch::IntegrationTest
     ]
     mapping = { "name" => "name", "email" => "email", "role" => "role" }
 
-    result = CsvMapper::Importer.new(Contact, mapping).import(rows)
+    result = CsvDrop::Importer.new(Contact, mapping).import(rows)
 
     assert_equal 1, result.success_count
     assert_equal 1, result.failure_count

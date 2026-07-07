@@ -9,7 +9,7 @@ require "rake/testtask"
 Rake::TestTask.new(:test) do |t|
   t.libs << "test"
   t.libs << "lib"
-  t.test_files = FileList["test/{csv_mapper,integration}/**/*_test.rb"]
+  t.test_files = FileList["test/{csv_drop,integration}/**/*_test.rb"]
 end
 
 task default: :test

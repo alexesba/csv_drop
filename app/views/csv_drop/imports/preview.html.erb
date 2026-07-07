@@ -1,0 +1,84 @@
+<% content_for :title, "Map Fields" %>
+
+<div class="card">
+  <h1>Map CSV Columns</h1>
+  <p>
+    Importing <strong><%= @row_count %></strong> rows into
+    <strong><%= @model_name %></strong>.
+    Match each CSV column to a model field, or skip it.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Preview</h2>
+  <table>
+    <thead>
+      <tr>
+        <% @headers.each do |header| %>
+          <th><%= header %></th>
+        <% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <% @preview_rows.each do |row| %>
+        <tr>
+          <% @headers.each do |header| %>
+            <td><%= row[header.to_sym] || row[header] %></td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Column Mapping</h2>
+
+  <%= form_with url: imports_path, method: :post, data: { turbo_frame: "_top" } do |f| %>
+    <%= hidden_field_tag :token, @token %>
+
+    <% @headers.each do |header| %>
+      <div class="mapping-row">
+        <div>
+          <span class="csv-col"><%= header %></span>
+        </div>
+        <div>
+          <%= select_tag "mapping[#{header}]",
+                options_for_select(
+                  [["— Skip this column —", CsvDrop::Mapper::SKIP]] +
+                  @model_columns.map { |c|
+                    label = c[:name]
+                    label += " (required)" if c[:required]
+                    [label, c[:name]]
+                  }
+                ),
+                include_blank: "Auto-detect…" %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="actions">
+      <%= submit_tag "Import #{@row_count} Rows", class: "btn" %>
+      <%= link_to "Start Over", new_import_path, class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  // Auto-detect: match CSV headers to model columns (case-insensitive, underscore-normalized)
+  document.addEventListener("DOMContentLoaded", () => {
+    const modelColumns = <%= @model_columns.map { |c| c[:name] }.to_json.html_safe %>;
+
+    function normalize(str) {
+      return str.toLowerCase().replace(/[\s-]+/g, "_");
+    }
+
+    document.querySelectorAll("select[name^='mapping']").forEach((select) => {
+      const csvHeader = select.name.match(/mapping\[(.+)\]/)[1];
+      const normalized = normalize(csvHeader);
+
+      const match = modelColumns.find((col) => normalize(col) === normalized);
+      if (match) select.value = match;
+    });
+  });
+</script>

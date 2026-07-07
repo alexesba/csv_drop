@@ -1,10 +1,10 @@
-# CsvMapper
+# CsvDrop
 
 Zero-config CSV import for Rails. Install the gem, mount the engine, and import into **any** ActiveRecord model — no importer classes, no persistence targets, no DSL.
 
 ## Why this exists
 
-Gems like [data_porter](https://github.com/SerylLns/data_porter) and [importance](https://github.com/code-fabrik/importance) require you to define import targets/importers with custom persistence logic. **CsvMapper** takes a different approach:
+Gems like [data_porter](https://github.com/SerylLns/data_porter) and [importance](https://github.com/code-fabrik/importance) require you to define import targets/importers with custom persistence logic. **CsvDrop** takes a different approach:
 
 1. Install the gem
 2. Upload a CSV
@@ -28,15 +28,15 @@ No configuration required.
 
 ```ruby
 # Gemfile
-gem "csv_mapper"
+gem "csv_drop"
 ```
 
 ```bash
 bundle install
-rails generate csv_mapper:install
+rails generate csv_drop:install
 ```
 
-Visit `/csv_import`. That's it.
+Visit `/csv_drop`. That's it.
 
 ## User Flow
 
@@ -57,8 +57,8 @@ Visit `/csv_import`. That's it.
 Configuration is **not required**. Use it only to restrict behavior:
 
 ```ruby
-# config/initializers/csv_mapper.rb
-CsvMapper.configure do |config|
+# config/initializers/csv_drop.rb
+CsvDrop.configure do |config|
   # Limit which models appear (default: all models)
   config.importable_models = [User, Product]
 
@@ -80,7 +80,7 @@ end
 
 ## Async imports (Turbo Frames)
 
-Imports at or above `async_row_threshold` rows are enqueued via `CsvMapper::ImportJob`. The UI shows a progress Turbo Frame that updates over Action Cable and swaps to the results view when complete.
+Imports at or above `async_row_threshold` rows are enqueued via `CsvDrop::ImportJob`. The UI shows a progress Turbo Frame that updates over Action Cable and swaps to the results view when complete.
 
 Small imports (below the threshold) still run synchronously in the request.
 
@@ -94,7 +94,7 @@ rails turbo:install
 
 ## Storage backends (Heroku / multi-dyno)
 
-By default, CsvMapper uses local disk under `/tmp` — fine for development and single-server deploys.
+By default, CsvDrop uses local disk under `/tmp` — fine for development and single-server deploys.
 
 For **Heroku**, **Render**, or any environment with ephemeral or per-dyno filesystems, configure shared storage:
 
@@ -106,11 +106,11 @@ For **Heroku**, **Render**, or any environment with ephemeral or per-dyno filesy
 
 ### Auto-detect (recommended)
 
-Set `REDIS_URL` and configure Active Storage with S3. CsvMapper picks Redis + Active Storage automatically:
+Set `REDIS_URL` and configure Active Storage with S3. CsvDrop picks Redis + Active Storage automatically:
 
 ```ruby
-# config/initializers/csv_mapper.rb
-CsvMapper.configure do |config|
+# config/initializers/csv_drop.rb
+CsvDrop.configure do |config|
   config.session_store = :auto   # Redis when REDIS_URL is set, else disk
   config.progress_store = :auto
   config.file_store = :auto      # Active Storage when available, else disk
@@ -126,7 +126,7 @@ bundle add redis
 ### Explicit configuration
 
 ```ruby
-CsvMapper.configure do |config|
+CsvDrop.configure do |config|
   config.session_store = :redis
   config.progress_store = :redis
   config.file_store = :active_storage
@@ -141,9 +141,9 @@ Use `:file` and `:disk` to force local storage (default behavior).
 ## Programmatic API
 
 ```ruby
-parsed = CsvMapper::Parser.parse("users.csv")
+parsed = CsvDrop::Parser.parse("users.csv")
 mapping = { "full_name" => "name", "email_address" => "email" }
-result = CsvMapper::Importer.new(User, mapping).import(parsed.rows)
+result = CsvDrop::Importer.new(User, mapping).import(parsed.rows)
 
 result.success_count  # => 48
 result.failure_count  # => 2
@@ -152,7 +152,7 @@ result.errors         # => per-row validation failures
 
 ## Comparison
 
-| | CsvMapper | data_porter | importance |
+| | CsvDrop | data_porter | importance |
 |---|---|---|---|
 | Config required | No | Yes (targets DSL) | Yes (importers) |
 | Model selection | All AR models | Pre-defined targets | Pre-defined importers |
@@ -188,7 +188,7 @@ Start the demo app:
 ./bin/demo
 ```
 
-Then open http://localhost:3000/csv_import:
+Then open http://localhost:3000/csv_drop:
 
 | File | Rows | Behavior |
 |------|------|----------|
@@ -200,7 +200,7 @@ Upload into the **Contact** model and map `name`, `email`, `role`.
 ## Development
 
 ```bash
-cd csv_mapper
+cd csv_drop
 bundle install
 bundle exec rake test
 ```

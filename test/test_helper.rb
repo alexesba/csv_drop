@@ -9,9 +9,9 @@ dummy_root = File.expand_path("dummy", __dir__)
 require File.join(dummy_root, "config/environment")
 
 require "rails/test_help"
-require "csv_mapper"
+require "csv_drop"
 
-CsvMapper.configure do |config|
+CsvDrop.configure do |config|
   config.session_store = :file
   config.progress_store = :file
   config.file_store = :disk
